@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(CMake_Test VERSION 0.1.0)
+project(Snake-by-InfinitePain VERSION 0.1.0)
 
 # Set the output directory for the binary file
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/)
@@ -15,10 +15,16 @@ file(GLOB SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Add any additional libraries
-set(NCURSES_LIBRARY ncurses)
+set(NCURSES_LIBRARY ncursesw)
 include_directories("C:/msys64/mingw64/include/ncurses")
-find_library(NCURSES_LIBRARY NAMES ncurses)
+find_library(NCURSES_LIBRARY NAMES ncursesw)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${NCURSES_LIBRARY})
+set(SHLWAPI_LIBRARY Shlwapi)
+find_library(SHLWAPI_LIBRARY NAMES Shlwapiw)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${SHLWAPI_LIBRARY})
+#set(MENU_LIBRARY menuw)
+#find_library(MENU_LIBRARY NAMES menuw)
+#target_link_libraries(${PROJECT_NAME} PUBLIC ${MENU_LIBRARY})
 
 # add the install targets
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

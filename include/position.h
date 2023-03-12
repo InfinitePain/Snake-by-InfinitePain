@@ -1,19 +1,18 @@
 /*
  ============================================================================
- Name        : game.c
+ Name        : position.h
  Author      : InfinitePain
- Version     : 0.1.0
  License     : Apache License 2.0
- Description : Snake game in C
+ Description : Header file for Snake-by-InfinitePain
  ============================================================================
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "header.h"
+#ifndef POSITION_H_
+#define POSITION_H_
 
-int main(void) {
-    hello_world();
-    getchar();
-    return EXIT_SUCCESS;
-}
+typedef struct Position {
+	int posx;
+	int posy;
+} Position;
+
+#endif /* POSITION_H_ */

@@ -66,6 +66,7 @@ dkms.conf
 
 .vscode/*
 CMakePresets.json
+.editorconfig
 
 # Local History for Visual Studio Code
 .history/
@@ -75,3 +76,5 @@ CMakePresets.json
 
 .ninja_deps
 .ninja_log
+
+configurations.txt
