@@ -46,19 +46,6 @@ void create_input_thread(pthread_t* thr, Input* pInput) {
 	pInput->is_thr_init = true;
 }
 
-void pause_input_thread(Input* pInput) {
-	pthread_mutex_lock(&pInput->thr_mutex);
-	pInput->pause_flag = true;
-	pthread_mutex_unlock(&pInput->thr_mutex);
-}
-
-void resume_input_thread(Input* pInput) {
-	pthread_mutex_lock(&pInput->thr_mutex);
-	pInput->pause_flag = false;
-	pthread_cond_signal(&pInput->pause_cond);
-	pthread_mutex_unlock(&pInput->thr_mutex);
-}
-
 void destroy_input_thread(Input* pInput, pthread_t thr) {
 	if (pInput->is_thr_init) {
 		pause_input_thread(pInput);
