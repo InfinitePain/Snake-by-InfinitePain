@@ -15,7 +15,6 @@
 #include "config.h"
 #include "input.h"
 #include "mymenu.h"
-#include "alphabet.h"
 #include "snake.h"
 #include "wall.h"
 
@@ -42,8 +41,6 @@ typedef struct appData {
 	Config* pConfig;
 	Input* pInput1;
 	Input* pInput2;
-	Mymenu* pMymenu;
-	Alphabet* pAlphabet;
 	bool animation;
 	List* pWall;
 	Snake* pSnake1;

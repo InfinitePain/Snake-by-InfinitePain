@@ -13,7 +13,7 @@
 #include <ncurses.h>
 
 void init_screen();
-WINDOW* create_win(WINDOW* window);
+WINDOW* create_win(WINDOW* window, int width, int height, int start_y, int start_x);
 void destroy_screen();
 
 #endif /*TERMINAL_H_*/

@@ -15,13 +15,12 @@
 #include "input.h"
 #include <pthread.h>
 #include "error_message.h"
-#include "mymenu.h"
 #include "terminal.h"
 #include <setjmp.h>
 #include <stdbool.h>
 #include "appdata.h"
 #include "thread.h"
-#include "alphabet.h"
+#include "mymenu.h"
 
  /*
 jmp_buffer1 for create_alphabet
@@ -46,15 +45,17 @@ jmp_buf jmp_buffer10;
 void init_main() {
 	sleep(1);
 	init_screen();
-	appArgs.window_game = create_win(appArgs.window_game);
-	appArgs.window_menu = create_win(appArgs.window_menu);
+	appArgs.window_game = create_win(appArgs.window_game, LINES, COLS, 0, 0);
+	appArgs.window_menu = create_win(appArgs.window_menu, 8, 17, (LINES - 8) / 2, (COLS - 17) / 2);
+
+
+
+
 	appArgs.pConfig = read_config();
 	appArgs.pInput1 = create_input();
 	create_input_thread(&appArgs.thr[thr_input1], appArgs.pInput1);
 	appArgs.pInput2 = create_input();
 	create_input_thread(&appArgs.thr[thr_input2], appArgs.pInput2);
-	appArgs.pMymenu = create_Mymenu(appArgs.pMymenu); //todo make this a thread
-	appArgs.pAlphabet = create_alphabet();
 	appArgs.pWall = create_wall();
 	appArgs.pSnake1 = create_snake();
 	create_snake_thread(&appArgs.thr[thr_snake1], appArgs.pSnake1);
@@ -77,8 +78,6 @@ void destroy_main() {
 	delete_input(appArgs.pInput1);
 	destroy_thread(&appArgs.pInput2->is_thr_init, appArgs.thr[thr_input2], &appArgs.pInput2->pause_flag, &appArgs.pInput2->thr_mutex, &appArgs.pInput2->pause_cond);
 	delete_input(appArgs.pInput2);
-	delete_mymenu(appArgs.pMymenu);
-    delete_alphabet(appArgs.pAlphabet);
 	delete_list(appArgs.pWall);
 	destroy_thread(&appArgs.pSnake1->is_thr_init, appArgs.thr[thr_snake1], &appArgs.pSnake1->pause_flag, &appArgs.pSnake1->snake_mutex, &appArgs.pSnake1->pause_cond);
 	delete_snake(appArgs.pSnake1);
@@ -99,26 +98,10 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 	
-	resume_thread(&appArgs.pInput1->pause_flag, &appArgs.pInput1->thr_mutex, &appArgs.pInput1->pause_cond);
-	switch (mymenu())
-	{
-	case 0:
-		resume_thread(&appArgs.pInput2->pause_flag, &appArgs.pInput2->thr_mutex, &appArgs.pInput2->pause_cond);
-		list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
-		resume_thread(&appArgs.pSnake1->pause_flag, &appArgs.pSnake1->snake_mutex, &appArgs.pSnake1->pause_cond);
-		pthread_join(appArgs.thr[1], NULL);
-		break;
-	case 1:
-	 	resume_thread(&appArgs.pInput2->pause_flag, &appArgs.pInput2->thr_mutex, &appArgs.pInput2->pause_cond);
-		list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
-		resume_thread(&appArgs.pSnake1->pause_flag, &appArgs.pSnake1->snake_mutex, &appArgs.pSnake1->pause_cond);
-		resume_thread(&appArgs.pSnake2->pause_flag, &appArgs.pSnake2->snake_mutex, &appArgs.pSnake2->pause_cond);
-		pthread_join(appArgs.thr[1], NULL);
-		break;
-	case 2:
-		/* code */
-		break;
-	}
+	menuArgs menuargument = { .is_thr_init = true, .pause_cond = PTHREAD_COND_INITIALIZER, .thr_mutex = PTHREAD_MUTEX_INITIALIZER, .pause_flag = false };
+	pthread_create(&appArgs.thr[thr_mymenu], NULL, &menu_thread, &menuargument);
+	resume_thread(&menuargument.pause_flag, &menuargument.thr_mutex, &menuargument.pause_cond);
+	pthread_join(appArgs.thr[thr_mymenu], NULL);
 
 
 	getchar();

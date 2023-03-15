@@ -206,22 +206,3 @@ List* copy_list(List* original) {
 	} while (pOrg != original->head);
 	return copy;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

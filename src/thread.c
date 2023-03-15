@@ -46,16 +46,6 @@ void create_input_thread(pthread_t* thr, Input* pInput) {
 	pInput->is_thr_init = true;
 }
 
-void destroy_input_thread(Input* pInput, pthread_t thr) {
-	if (pInput->is_thr_init) {
-		pause_input_thread(pInput);
-		appArgs.appState = false;
-		resume_input_thread(pInput);
-		pthread_join(thr, NULL);
-		pInput->is_thr_init = false;
-	}
-}
-
 void create_snake_thread(pthread_t* thr, Snake* pSnake) {
 	if (pthread_create(thr, NULL, &snake_thread, pSnake) != 0) {
 		error_message("ERROR: Can't create Thread\n");

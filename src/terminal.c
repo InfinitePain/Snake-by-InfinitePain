@@ -47,8 +47,8 @@ void init_screen() {
 	curs_set(0);
 }
 
-WINDOW* create_win(WINDOW* window) {
-	window = newwin(LINES, COLS, 0, 0);
+WINDOW* create_win(WINDOW* window, int width, int height, int start_y, int start_x) {
+	window = newwin(width, height, start_y, start_x);
 	if (window == NULL) {
 		error_message("ERROR func create_win");
 		longjmp(jmp_buffer10, 1);
