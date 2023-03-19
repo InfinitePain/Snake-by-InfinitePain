@@ -22,6 +22,8 @@ void delete_snake(Snake* pSnake) {
 		return;
 	}
 	delete_list(pSnake->pos_snake);
+	pthread_mutex_destroy(&pSnake->thr_mutex);
+	pthread_cond_destroy(&pSnake->pause_cond);
 	free(pSnake);
 	pSnake = NULL;
 }
@@ -39,10 +41,11 @@ Snake* create_snake() {
 		error_message("ERROR: Can't initialize Snake");
 		longjmp(jmp_buffer10, 1);
 	}
+	pSnake->gameState = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
 	pSnake->is_thr_init = false;
-	pSnake->snake_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pSnake->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
 	pSnake->pause_cond = PTHREAD_COND_INITIALIZER;
 	pSnake->pause_flag = true;
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
@@ -88,10 +91,14 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
 	int key = pSnake->dir;
-	while (appArgs.appState) {
-		pthread_mutex_lock(&pSnake->snake_mutex);
+	while (pSnake->is_thr_init) {
+		pthread_mutex_lock(&pSnake->thr_mutex);
 		while (pSnake->pause_flag) {
-			pthread_cond_wait(&pSnake->pause_cond, &pSnake->snake_mutex);
+			pthread_cond_wait(&pSnake->pause_cond, &pSnake->thr_mutex);
+			if (!pSnake->gameState) {
+				pSnake->pause_flag = true;
+			}
+			
 		}
 		
 		if (setjmp(jmp_buffer9) != 1) {
@@ -108,10 +115,10 @@ void* snake_thread(void* args) {
 			usleep(100000);
 		}
 		else {
-			pthread_mutex_unlock(&pSnake->snake_mutex);
+			pthread_mutex_unlock(&pSnake->thr_mutex);
 			pthread_exit(NULL);
 		}
-		pthread_mutex_unlock(&pSnake->snake_mutex);
+		pthread_mutex_unlock(&pSnake->thr_mutex);
 	}
 	pthread_exit(NULL);
 }

@@ -8,87 +8,195 @@
 */
 
 #include <stdlib.h>
-#include <ncurses.h>
-#include <menu.h>
 #include <setjmp.h>
+#include <string.h>
 #include "appdata.h"
 #include "thread.h"
 
+extern jmp_buf jmp_buffer10;
+jmp_buf jmp_buffer11;
 
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-char* choices[] = {
-					"Single Player",
-					" Multiplayer ",
-					"  Settings   ",
-					"    Exit     "
-				  };
-
+char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
+char* pause_menu_names[3] = { "    Resume   ", "   Settings  ", "     Quit    " };
+//char* settings[];//TODO add settings
 
 
 
 void single_start() {
+	resume_thread(thr_input1);
+	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
-	resume_thread(&appArgs.pInput1->pause_flag, &appArgs.pInput1->thr_mutex, &appArgs.pInput1->pause_cond);
-	resume_thread(&appArgs.pInput2->pause_flag, &appArgs.pInput2->thr_mutex, &appArgs.pInput2->pause_cond);
-	resume_thread(&appArgs.pSnake1->pause_flag, &appArgs.pSnake1->snake_mutex, &appArgs.pSnake1->pause_cond);
+	appArgs.pSnake1->gameState = true;
+	resume_thread(thr_snake1);
+}
+
+void multi_start() {
+	resume_thread(thr_input1);
+	resume_thread(thr_input2);
+	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
+	appArgs.pSnake1->gameState = true;
+	resume_thread(thr_snake1);
+	appArgs.pSnake2->gameState = true;
+	resume_thread(thr_snake2);
+}
+
+
+
+void delete_menu(MENU* menu, ITEM** items, int n_choices) {
+	//TODO ask ChatGPT how he would implement
+	if (menu != NULL) {
+		free_menu(menu);
+	}
+	if (items != NULL) {
+		for (int i = 0; i < n_choices; i++) {
+			free_item(items[i]);
+		}
+	}
+}
+
+void delete_menuThrArgs() {
+	if (appArgs.pMenuThrArgs == NULL) {
+		return;
+	}
+	pthread_mutex_destroy(&appArgs.pMenuThrArgs->thr_mutex);
+	pthread_cond_destroy(&appArgs.pMenuThrArgs->pause_cond);
+	delete_menu(appArgs.pMenuThrArgs->main_menu, appArgs.pMenuThrArgs->main_menu_items, appArgs.pMenuThrArgs->n_choices_main);
+	delete_menu(appArgs.pMenuThrArgs->pause_menu, appArgs.pMenuThrArgs->pause_menu_items, appArgs.pMenuThrArgs->n_choices_pause);
+	delete_menu(appArgs.pMenuThrArgs->settings_menu, appArgs.pMenuThrArgs->settings_menu_items, appArgs.pMenuThrArgs->n_choices_settings);
+}
+
+ITEM* create_item(char* string1, char* string2) {
+	ITEM* item = NULL;
+	if (string2 == NULL) {
+		item = new_item(string1, NULL);
+	}
+	else {
+		item = new_item(string1, string2);
+	}
+	if (item == NULL) {
+		longjmp(jmp_buffer11, 1);
+	}
+}
+
+ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices) {
+	ITEM** items = (ITEM**)calloc(n_choices, sizeof(ITEM*));
+	memset(items, 0, n_choices * sizeof(ITEM*));
+	if (items == NULL) {
+		longjmp(jmp_buffer10, 1);
+	}
+	
+	if (setjmp(jmp_buffer11) != 1) {
+		for (int i = 0; i < n_choices; i++) {
+			items[i] = create_item(choices1[i], NULL);
+
+		}
+		items[n_choices] = (ITEM*)NULL;
+	}
+	else {
+		for (int i = 0; i < n_choices; i++) {
+			free_item(items[i]);
+			items[i] = NULL;
+		}
+		longjmp(jmp_buffer10, 1);
+	}
+	return items;
+}
+
+MENU* create_menu(ITEM** items) {
+	MENU* menu = NULL;
+	menu = new_menu(items);
+	if (menu == NULL) {
+		longjmp(jmp_buffer10, 1);
+	}
+	return menu;
+}
+
+void set_menu_attr(MENU* menu) {
+	int width, height;
+	set_menu_win(menu, appArgs.window_menu);
+	width = getmaxx(appArgs.window_menu);
+	height = getmaxy(appArgs.window_menu);
+	WINDOW* subwindow = NULL;
+	subwindow = derwin(appArgs.window_menu, height - 3, width - 3, 3, 2);
+	if (subwindow == NULL) {
+		longjmp(jmp_buffer10, 1);
+	}
+	set_menu_sub(menu, subwindow);
+	set_menu_mark(menu, "");
+}
+
+MenuThrArgs* create_menuThrArgs() {
+	MenuThrArgs* pMenuThrArgs = (MenuThrArgs*)malloc(sizeof(MenuThrArgs));
+	if (pMenuThrArgs == NULL) {
+		longjmp(jmp_buffer10, 1);
+	}
+	pMenuThrArgs->is_thr_init = false;
+	pMenuThrArgs->pause_cond = PTHREAD_COND_INITIALIZER;
+	pMenuThrArgs->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pMenuThrArgs->pause_flag = true;
+	
+	pMenuThrArgs->n_choices_main = ARRAY_SIZE(main_menu_names);
+	pMenuThrArgs->main_menu_items = create_item_list(main_menu_names, NULL, pMenuThrArgs->n_choices_main);
+	pMenuThrArgs->main_menu = create_menu(pMenuThrArgs->main_menu_items);
+	set_menu_attr(pMenuThrArgs->main_menu);
+	
+	pMenuThrArgs->n_choices_pause = ARRAY_SIZE(pause_menu_names);
+	pMenuThrArgs->pause_menu_items =  create_item_list(pause_menu_names, NULL, pMenuThrArgs->n_choices_pause);
+	pMenuThrArgs->pause_menu = create_menu(pMenuThrArgs->pause_menu_items);
+	set_menu_attr(pMenuThrArgs->pause_menu);
+	
+	//TODO add settings
+	return pMenuThrArgs;
 }
 
 void* menu_thread(void* args) {
-	menuArgs* pmenuArgs = (menuArgs*)args;
+	MenuThrArgs* pMenuThrArgs = (MenuThrArgs*)args;
 	cbreak;
 	noecho();
 	keypad(appArgs.window_menu, TRUE);
 	nodelay(appArgs.window_menu, FALSE);
+	
 
-	ITEM** menuItems;
 	ITEM* curItem;
-	MENU* gameMenu;
-	int n_choices = ARRAY_SIZE(choices);
 	int key;
-	menuItems = (ITEM**)calloc(n_choices + 1, sizeof(ITEM*));
 
-	for (int i = 0; i < n_choices; i++) {
-		menuItems[i] = new_item(choices[i], NULL);
-	}
-	set_item_userptr(menuItems[0], single_start);
+	set_item_userptr(pMenuThrArgs->main_menu->items[0], single_start);
+	set_item_userptr(pMenuThrArgs->main_menu->items[1], multi_start);
 	void(*p)();
 
 
-	while (appArgs.appState) {
-		pthread_mutex_lock(&pmenuArgs->thr_mutex);
-		while (pmenuArgs->pause_flag) {
-			pthread_cond_wait(&pmenuArgs->pause_cond, &pmenuArgs->thr_mutex);
+	while (pMenuThrArgs->is_thr_init) {
+		pthread_mutex_lock(&pMenuThrArgs->thr_mutex);
+		while (pMenuThrArgs->pause_flag) {
+			pthread_cond_wait(&pMenuThrArgs->pause_cond, &pMenuThrArgs->thr_mutex);
 		}
-		gameMenu = new_menu((ITEM**)menuItems);
-		set_menu_win(gameMenu, appArgs.window_menu);
-		set_menu_sub(gameMenu, derwin(appArgs.window_menu, 4, 13, 3, 2));
-		set_menu_format(gameMenu, 4, 1);
-		set_menu_mark(gameMenu, "");
+		
+		set_menu_format(pMenuThrArgs->main_menu, 4, 1);
 		box(appArgs.window_menu, 0, 0);
 		mvwaddch(appArgs.window_menu, 2, 0, ACS_LTEE);
 		mvwhline(appArgs.window_menu, 2, 1, ACS_HLINE, 15);
 		mvwaddch(appArgs.window_menu, 2, 16, ACS_RTEE);
 		mvwprintw(appArgs.window_menu, 1, 3, "Snake by IP");
-		post_menu(gameMenu);
+		post_menu(pMenuThrArgs->main_menu);
 		wrefresh(appArgs.window_menu);
 		while ((key = wgetch(appArgs.window_menu)) != '\n') {
 		switch (key) {
 		case KEY_DOWN:
-			menu_driver(gameMenu, REQ_DOWN_ITEM);
+			menu_driver(pMenuThrArgs->main_menu, REQ_DOWN_ITEM);
 			break;
 		case KEY_UP:
-			menu_driver(gameMenu, REQ_UP_ITEM);
+			menu_driver(pMenuThrArgs->main_menu, REQ_UP_ITEM);
 			break;
 		}
 		}
-		curItem = current_item(gameMenu);
+		curItem = current_item(pMenuThrArgs->main_menu);
 		p = item_userptr(curItem);
+		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
+		pause_thread(thr_menu);
 		p();
 
-
-		
 	}
 	pthread_exit(NULL);
 }

@@ -93,7 +93,7 @@ void* input_thread(void* args) {
 	nodelay(pInput->window_input, TRUE);
 	keypad(pInput->window_input, TRUE);
 	timeout(100);
-	while (appArgs.appState) {
+	while (pInput->is_thr_init) {
 		pthread_mutex_lock(&pInput->thr_mutex);
 		while (pInput->pause_flag){
 			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);

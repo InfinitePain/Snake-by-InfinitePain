@@ -33,13 +33,10 @@ jmp_buffer7  for init_wall
 jmp_buffer8  for move_snake
 jmp_buffer9  for single_player
 jmp_buffer10 for main
+jmp_buffer11 for create_item_list
  */
 
-#define thr_input1 0
-#define thr_input2 1
-#define thr_mymenu 2
-#define thr_snake1 3
-#define thr_snake2 4
+
 jmp_buf jmp_buffer10;
 
 void init_main() {
@@ -47,22 +44,23 @@ void init_main() {
 	init_screen();
 	appArgs.window_game = create_win(appArgs.window_game, LINES, COLS, 0, 0);
 	appArgs.window_menu = create_win(appArgs.window_menu, 8, 17, (LINES - 8) / 2, (COLS - 17) / 2);
+	//TODO error handling for window creation
 
 
-
-
+	appArgs.pMenuThrArgs = create_menuThrArgs();
+	create_thread(thr_menu);
 	appArgs.pConfig = read_config();
 	appArgs.pInput1 = create_input();
-	create_input_thread(&appArgs.thr[thr_input1], appArgs.pInput1);
+	create_thread(thr_input1);
 	appArgs.pInput2 = create_input();
-	create_input_thread(&appArgs.thr[thr_input2], appArgs.pInput2);
+	create_thread(thr_input2);
 	appArgs.pWall = create_wall();
 	appArgs.pSnake1 = create_snake();
-	create_snake_thread(&appArgs.thr[thr_snake1], appArgs.pSnake1);
+	create_thread(thr_snake1);
 	appArgs.pSnake1->dir = MOVE_RIGHT;
 	appArgs.pSnake1->color = appArgs.pConfig->PLAYER_1_COLOR;
 	appArgs.pSnake2 = create_snake();
-	create_snake_thread(&appArgs.thr[thr_snake2], appArgs.pSnake2);
+	create_thread(thr_snake2);
 	appArgs.pSnake2->dir = MOVE_RIGHT;
 	appArgs.pSnake2->color = appArgs.pConfig->PLAYER_2_COLOR;
 }
@@ -73,15 +71,17 @@ void destroy_main() {
 	delwin(appArgs.window_game);
 	delwin(appArgs.window_menu);
 	pthread_mutex_destroy(&appArgs.mutex_win_game);
+	delete_menuThrArgs();
+	destroy_thread(thr_menu);
 	delete_config(appArgs.pConfig);
-	destroy_thread(&appArgs.pInput1->is_thr_init, appArgs.thr[thr_input1], &appArgs.pInput1->pause_flag, &appArgs.pInput1->thr_mutex, &appArgs.pInput1->pause_cond);
+	destroy_thread(thr_input1);
 	delete_input(appArgs.pInput1);
-	destroy_thread(&appArgs.pInput2->is_thr_init, appArgs.thr[thr_input2], &appArgs.pInput2->pause_flag, &appArgs.pInput2->thr_mutex, &appArgs.pInput2->pause_cond);
+	destroy_thread(thr_input2);
 	delete_input(appArgs.pInput2);
 	delete_list(appArgs.pWall);
-	destroy_thread(&appArgs.pSnake1->is_thr_init, appArgs.thr[thr_snake1], &appArgs.pSnake1->pause_flag, &appArgs.pSnake1->snake_mutex, &appArgs.pSnake1->pause_cond);
+	destroy_thread(thr_snake1);
 	delete_snake(appArgs.pSnake1);
-	destroy_thread(&appArgs.pSnake2->is_thr_init, appArgs.thr[thr_snake2], &appArgs.pSnake2->pause_flag, &appArgs.pSnake2->snake_mutex, &appArgs.pSnake2->pause_cond);
+	destroy_thread(thr_snake2);
 	delete_snake(appArgs.pSnake2);
 }
 
@@ -98,10 +98,8 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 	
-	menuArgs menuargument = { .is_thr_init = true, .pause_cond = PTHREAD_COND_INITIALIZER, .thr_mutex = PTHREAD_MUTEX_INITIALIZER, .pause_flag = false };
-	pthread_create(&appArgs.thr[thr_mymenu], NULL, &menu_thread, &menuargument);
-	resume_thread(&menuargument.pause_flag, &menuargument.thr_mutex, &menuargument.pause_cond);
-	pthread_join(appArgs.thr[thr_mymenu], NULL);
+	resume_thread(thr_menu);
+	pthread_join(appArgs.thr[thr_menu], NULL);
 
 
 	getchar();

@@ -27,7 +27,7 @@ endif()
 set(MENU_LIBRARY menuw)
 find_library(MENU_LIBRARY NAMES menuw)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${MENU_LIBRARY})
-set(PANEL_LIBRARY menuw)
+set(PANEL_LIBRARY panelw)
 find_library(PANEL_LIBRARY NAMES panelw)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PANEL_LIBRARY})
 

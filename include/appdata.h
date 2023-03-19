@@ -12,11 +12,19 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#include <ncurses.h>
 #include "config.h"
 #include "input.h"
 #include "mymenu.h"
 #include "snake.h"
 #include "wall.h"
+#include "menu.h"
+
+#define thr_input1 0
+#define thr_input2 1
+#define thr_menu   2
+#define thr_snake1 3
+#define thr_snake2 4
 
 typedef struct appData {
 	//main
@@ -35,9 +43,10 @@ typedef struct appData {
 	WINDOW* window_game;
 	pthread_mutex_t mutex_win_game;
 	WINDOW* window_menu;
-	
+
 	//game related
-	
+
+	MenuThrArgs* pMenuThrArgs;
 	Config* pConfig;
 	Input* pInput1;
 	Input* pInput2;

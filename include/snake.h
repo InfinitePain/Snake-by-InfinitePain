@@ -18,6 +18,7 @@
 
 typedef struct Snake
 {
+	bool gameState;
 	List* pos_snake;
 	int grow;
 	int point;
@@ -25,7 +26,7 @@ typedef struct Snake
 	int color;
 	bool is_thr_init;
 	bool pause_flag;
-	pthread_mutex_t snake_mutex;
+	pthread_mutex_t thr_mutex;
 	pthread_cond_t pause_cond;
 } Snake;
 

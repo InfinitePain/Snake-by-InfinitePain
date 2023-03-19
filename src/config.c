@@ -89,7 +89,7 @@ char* get_dir_path(Config* pConfig) {
 		return NULL;
 	}
 #elif __APPLE__
-	//todo I don't have any apple device so test if this even works
+	//TODO I don't have any apple device so test if this even works
 	char* buffer = (char*)malloc(PATH_MAX);
 	if (buffer == NULL) {
 		error_message("Error: Can't get file path. Configurations cannot be modified.");

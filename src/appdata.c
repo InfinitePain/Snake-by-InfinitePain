@@ -18,6 +18,7 @@ appData appArgs = {
 	.window_game = NULL,
 	.mutex_win_game = PTHREAD_MUTEX_INITIALIZER,
 	.window_menu = NULL,
+	.pMenuThrArgs = NULL,
 	.pConfig = NULL,
 	.pInput1 = NULL,
 	.pInput2 = NULL,
