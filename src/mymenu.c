@@ -17,7 +17,6 @@ extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
 
 
-
 char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
 char* pause_menu_names[3] = { "    Resume   ", "   Settings  ", "     Quit    " };
 //char* settings[];//TODO add settings
@@ -119,7 +118,7 @@ void set_menu_attr(MENU* menu) {
 	width = getmaxx(appArgs.window_menu);
 	height = getmaxy(appArgs.window_menu);
 	WINDOW* subwindow = NULL;
-	subwindow = derwin(appArgs.window_menu, height - 3, width - 3, 3, 2);
+	subwindow = derwin(appArgs.window_menu, height - 4, width - 3, 3, 2);
 	if (subwindow == NULL) {
 		longjmp(jmp_buffer10, 1);
 	}
@@ -193,8 +192,11 @@ void* menu_thread(void* args) {
 		}
 		curItem = current_item(pMenuThrArgs->main_menu);
 		p = item_userptr(curItem);
+		unpost_menu(pMenuThrArgs->main_menu);
+		wclear(appArgs.window_menu);
+		wrefresh(appArgs.window_menu);
+		pMenuThrArgs->pause_flag = true;
 		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
-		pause_thread(thr_menu);
 		p();
 
 	}

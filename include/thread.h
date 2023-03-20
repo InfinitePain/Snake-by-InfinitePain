@@ -16,7 +16,9 @@
 #include "snake.h"
 
 void pause_thread(int thrnum);
+void pause_game();
 void resume_thread(int thrnum);
+void resume_game();
 void destroy_thread(int thrnum);
 void create_thread(int thrnum);
 

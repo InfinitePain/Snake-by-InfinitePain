@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include "appdata.h"
+#include "thread.h"
 
 extern jmp_buf jmp_buffer10;
 
@@ -25,7 +26,6 @@ void delete_input(Input* pInput) {
 	}
 
 	pthread_mutex_destroy(&pInput->thr_mutex);
-	pthread_mutex_destroy(&pInput->input_mutex);
 	pthread_cond_destroy(&pInput->pause_cond);	
 	free(pInput);
 	pInput = NULL;
@@ -40,9 +40,7 @@ Input* create_input() {
 	pInput->is_thr_init = false;
 	pInput->pause_flag = true;
 	pInput->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
-	pInput->input_mutex = PTHREAD_MUTEX_INITIALIZER;
 	pInput->pause_cond = PTHREAD_COND_INITIALIZER;
-	pInput->player_input = -1;
 	pInput->window_input = newwin(LINES, COLS, 0, 0);
 	if (pInput->window_input == NULL) {
 		error_message("ERROR func create_input");
@@ -52,37 +50,58 @@ Input* create_input() {
 	return pInput;
 }
 
-void reset_input(Input* pInput) {
-	if (pthread_mutex_trylock(&pInput->input_mutex) == 0) {
-		pInput->player_input = ERR;
-		pthread_mutex_unlock(&pInput->input_mutex);	
-	}
-}
-
-int read_input(const Config* pConfig, const int key) {
-	if (key == pConfig->PLAYER_1_UP || key == pConfig->PLAYER_2_UP) {
+int read_input(const int key) {
+	if (key == appArgs.pConfig->PLAYER_1_UP || key == appArgs.pConfig->PLAYER_2_UP) {
 		return MOVE_UP;
 	}
-	else if (key == pConfig->PLAYER_1_LEFT || key == pConfig->PLAYER_2_LEFT) {
+	else if (key == appArgs.pConfig->PLAYER_1_LEFT || key == appArgs.pConfig->PLAYER_2_LEFT) {
 		return MOVE_LEFT;
 	}
-	else if (key == pConfig->PLAYER_1_RIGHT || key == pConfig->PLAYER_2_RIGHT) {
+	else if (key == appArgs.pConfig->PLAYER_1_RIGHT || key == appArgs.pConfig->PLAYER_2_RIGHT) {
 		return MOVE_RIGHT;
 	}
-	else if (key == pConfig->PLAYER_1_DOWN || key == pConfig->PLAYER_2_DOWN) {
+	else if (key == appArgs.pConfig->PLAYER_1_DOWN || key == appArgs.pConfig->PLAYER_2_DOWN) {
 		return MOVE_DOWN;
 	}
 	return -1;
 }
 
-int differentiator(const Config* pConfig, const int key) {
-	if (key == pConfig->PLAYER_1_UP || key == pConfig->PLAYER_1_LEFT || key == pConfig->PLAYER_1_RIGHT || key == pConfig->PLAYER_1_DOWN) {
+int differentiator(const int key) {
+	if (key == appArgs.pConfig->PLAYER_1_UP || key == appArgs.pConfig->PLAYER_1_LEFT || key == appArgs.pConfig->PLAYER_1_RIGHT || key == appArgs.pConfig->PLAYER_1_DOWN) {
 		return 1;
 	}
-	else if (key == pConfig->PLAYER_2_UP || key == pConfig->PLAYER_2_LEFT || key == pConfig->PLAYER_2_RIGHT || key == pConfig->PLAYER_2_DOWN) {
+	else if (key == appArgs.pConfig->PLAYER_2_UP || key == appArgs.pConfig->PLAYER_2_LEFT || key == appArgs.pConfig->PLAYER_2_RIGHT || key == appArgs.pConfig->PLAYER_2_DOWN) {
 		return 2;
 	}
 	return -1;
+}
+
+
+void input_driver(const int key, Input* pInput) {
+	switch (differentiator(key))
+	{
+	case Player_1:
+		appArgs.pSnake1->dir = read_input(key);
+		break;
+	case Player_2:
+		appArgs.pSnake2->dir = read_input(key);
+		break;
+	default:
+		if (key == 'q') {
+			pause_thread(thr_snake1);
+			pause_thread(thr_snake2);
+			if (pInput == appArgs.pInput1) {
+				appArgs.pInput1->pause_flag = true;
+				pause_thread(thr_input2);
+			}
+			else {
+				appArgs.pInput2->pause_flag = true;
+				pause_thread(thr_input1);
+			}
+			resume_thread(thr_menu);
+		}
+		break;
+	}
 }
 
 void* input_thread(void* args) {
@@ -95,40 +114,14 @@ void* input_thread(void* args) {
 	timeout(100);
 	while (pInput->is_thr_init) {
 		pthread_mutex_lock(&pInput->thr_mutex);
-		while (pInput->pause_flag){
+		while (appArgs.pInput1->pause_flag && appArgs.pInput2->pause_flag){
 			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);
 		}
 		inp = wgetch(pInput->window_input);
 		if (inp != ERR) {
-			pthread_mutex_lock(&pInput->input_mutex);
-			pInput->player_input = inp;
-			switch (differentiator(appArgs.pConfig, inp)) {
-			case 1:
-				appArgs.pSnake1->dir = read_input(appArgs.pConfig, inp);
-				break;
-			case 2:
-				appArgs.pSnake2->dir = read_input(appArgs.pConfig, inp);
-				break;
-			default:
-				break;
-			}
-			pthread_mutex_unlock(&pInput->input_mutex);
+			input_driver(inp, pInput);
 		}
 		pthread_mutex_unlock(&pInput->thr_mutex);
 	}
 	pthread_exit(NULL);
-}
-
-bool is_up_pressed(Input* pInput) {
-	if (pInput->player_input == (int)'w' || pInput->player_input == KEY_UP) {
-		return true;
-	}
-	return false;
-}
-
-bool is_down_pressed(Input* pInput) {
-	if (pInput->player_input == (int)'s' || pInput->player_input == KEY_DOWN) {
-		return true;
-	}
-	return false;
 }
