@@ -171,6 +171,7 @@ void* menu_thread(void* args) {
 		while (pMenuThrArgs->pause_flag) {
 			pthread_cond_wait(&pMenuThrArgs->pause_cond, &pMenuThrArgs->thr_mutex);
 		}
+		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
 		
 		set_menu_format(pMenuThrArgs->main_menu, 4, 1);
 		box(appArgs.window_menu, 0, 0);
@@ -195,8 +196,7 @@ void* menu_thread(void* args) {
 		unpost_menu(pMenuThrArgs->main_menu);
 		wclear(appArgs.window_menu);
 		wrefresh(appArgs.window_menu);
-		pMenuThrArgs->pause_flag = true;
-		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
+		pause_thread(thr_menu);
 		p();
 
 	}

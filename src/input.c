@@ -87,17 +87,11 @@ void input_driver(const int key, Input* pInput) {
 		appArgs.pSnake2->dir = read_input(key);
 		break;
 	default:
-		if (key == 'q') {
+		if (key == 27) {
 			pause_thread(thr_snake1);
 			pause_thread(thr_snake2);
-			if (pInput == appArgs.pInput1) {
-				appArgs.pInput1->pause_flag = true;
-				pause_thread(thr_input2);
-			}
-			else {
-				appArgs.pInput2->pause_flag = true;
-				pause_thread(thr_input1);
-			}
+			pause_thread(thr_input1);
+			pause_thread(thr_input2);
 			resume_thread(thr_menu);
 		}
 		break;
@@ -117,11 +111,11 @@ void* input_thread(void* args) {
 		while (appArgs.pInput1->pause_flag && appArgs.pInput2->pause_flag){
 			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);
 		}
+		pthread_mutex_unlock(&pInput->thr_mutex);
 		inp = wgetch(pInput->window_input);
 		if (inp != ERR) {
 			input_driver(inp, pInput);
 		}
-		pthread_mutex_unlock(&pInput->thr_mutex);
 	}
 	pthread_exit(NULL);
 }

@@ -98,8 +98,8 @@ void* snake_thread(void* args) {
 			if (!pSnake->gameState) {
 				pSnake->pause_flag = true;
 			}
-			
 		}
+		pthread_mutex_unlock(&pSnake->thr_mutex);
 		
 		if (setjmp(jmp_buffer9) != 1) {
 			if (pSnake->dir != key) {
@@ -115,10 +115,8 @@ void* snake_thread(void* args) {
 			usleep(100000);
 		}
 		else {
-			pthread_mutex_unlock(&pSnake->thr_mutex);
 			pthread_exit(NULL);
 		}
-		pthread_mutex_unlock(&pSnake->thr_mutex);
 	}
 	pthread_exit(NULL);
 }
