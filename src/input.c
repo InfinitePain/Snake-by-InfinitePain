@@ -39,8 +39,8 @@ Input* create_input() {
 	}
 	pInput->is_thr_init = false;
 	pInput->pause_flag = true;
-	pInput->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
-	pInput->pause_cond = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_init(&pInput->thr_mutex, NULL);
+	pthread_cond_init(&pInput->pause_cond, NULL);
 	pInput->window_input = newwin(LINES, COLS, 0, 0);
 	if (pInput->window_input == NULL) {
 		error_message("ERROR func create_input");
@@ -108,7 +108,7 @@ void* input_thread(void* args) {
 	timeout(100);
 	while (pInput->is_thr_init) {
 		pthread_mutex_lock(&pInput->thr_mutex);
-		while (appArgs.pInput1->pause_flag && appArgs.pInput2->pause_flag){
+		while (pInput->pause_flag){
 			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);
 		}
 		pthread_mutex_unlock(&pInput->thr_mutex);

@@ -45,8 +45,8 @@ Snake* create_snake() {
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
 	pSnake->is_thr_init = false;
-	pSnake->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
-	pSnake->pause_cond = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_init(&pSnake->thr_mutex, NULL);
+	pthread_cond_init(&pSnake->pause_cond, NULL);
 	pSnake->pause_flag = true;
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 	return pSnake;

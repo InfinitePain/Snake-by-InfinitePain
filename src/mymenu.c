@@ -132,8 +132,8 @@ MenuThrArgs* create_menuThrArgs() {
 		longjmp(jmp_buffer10, 1);
 	}
 	pMenuThrArgs->is_thr_init = false;
-	pMenuThrArgs->pause_cond = PTHREAD_COND_INITIALIZER;
-	pMenuThrArgs->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_cond_init(&pMenuThrArgs->pause_cond, NULL);
+	pthread_mutex_init(&pMenuThrArgs->thr_mutex, NULL);
 	pMenuThrArgs->pause_flag = true;
 	
 	pMenuThrArgs->n_choices_main = ARRAY_SIZE(main_menu_names);
