@@ -39,8 +39,8 @@ Input* create_input() {
 	}
 	pInput->is_thr_init = false;
 	pInput->pause_flag = true;
-	pInput->thr_mutex = PTHREAD_MUTEX_INITIALIZER;
-	pInput->pause_cond = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_init(&pInput->thr_mutex, NULL);
+	pthread_cond_init(&pInput->pause_cond, NULL);
 	pInput->window_input = newwin(LINES, COLS, 0, 0);
 	if (pInput->window_input == NULL) {
 		error_message("ERROR func create_input");
