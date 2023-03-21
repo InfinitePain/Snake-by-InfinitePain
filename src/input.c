@@ -114,7 +114,7 @@ void* input_thread(void* args) {
 	timeout(100);
 	while (pInput->is_thr_init) {
 		pthread_mutex_lock(&pInput->thr_mutex);
-		while (appArgs.pInput1->pause_flag && appArgs.pInput2->pause_flag){
+		while (pInput->pause_flag){
 			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);
 		}
 		inp = wgetch(pInput->window_input);
