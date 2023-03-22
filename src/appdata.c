@@ -63,8 +63,8 @@ void destroy_appData() {
 	delwin(appArgs.window_game);
 	delwin(appArgs.window_menu);
 	pthread_mutex_destroy(&appArgs.mutex_win_game);
-	delete_menuThrArgs();
 	destroy_thread(thr_menu);
+	delete_menuThrArgs();
 	delete_config(appArgs.pConfig);
 	destroy_thread(thr_input1);
 	delete_input(appArgs.pInput1);
