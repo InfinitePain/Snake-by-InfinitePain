@@ -18,6 +18,7 @@
 
 typedef struct Snake
 {
+	
 	bool gameState;
 	List* pos_snake;
 	int grow;

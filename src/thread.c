@@ -107,6 +107,8 @@ void destroy_thread(int thrnum) {
 			GameThreads.is_thr_init[thr_input1] = false;
 			resume_thread(thr_input1);
 			pthread_join(GameThreads.thr[thr_input1], NULL);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_input1]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_input1]);
 		}
 		break;
 	case thr_input2:
@@ -115,6 +117,8 @@ void destroy_thread(int thrnum) {
 			GameThreads.is_thr_init[thr_input2] = false;
 			resume_thread(thr_input2);
 			pthread_join(GameThreads.thr[thr_input2], NULL);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_input2]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_input2]);
 		}
 		break;
 	case thr_menu:
@@ -123,6 +127,8 @@ void destroy_thread(int thrnum) {
 			GameThreads.is_thr_init[thr_menu] = false;
 			resume_thread(thr_menu);
 			pthread_join(GameThreads.thr[thr_menu], NULL);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_menu]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_menu]);
 		}
 		break;
 	case thr_snake1:
@@ -131,6 +137,8 @@ void destroy_thread(int thrnum) {
 			GameThreads.is_thr_init[thr_snake1] = false;
 			resume_thread(thr_snake1);
 			pthread_join(GameThreads.thr[thr_snake1], NULL);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_snake1]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_snake1]);
 		}
 		break;
 	case thr_snake2:
@@ -139,13 +147,15 @@ void destroy_thread(int thrnum) {
 			GameThreads.is_thr_init[thr_snake2] = false;
 			resume_thread(thr_snake2);
 			pthread_join(GameThreads.thr[thr_snake2], NULL);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_snake2]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_snake2]);
 		}
 		break;
 	case thr_main:
 		if (GameThreads.is_thr_init[thr_main]) {
-			pause_thread(thr_main);
 			GameThreads.is_thr_init[thr_main] = false;
-			resume_thread(thr_main);
+			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_main]);
+			pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
 		}
 		break;
 	}
@@ -157,7 +167,7 @@ void create_thread(int thrnum) {
 		GameThreads.is_thr_init[thr_input1] = true;
 		if (pthread_create(&GameThreads.thr[thr_input1], NULL, &input_thread, appArgs.pInput1) != 0) {
 			error_message("ERROR: Can't create Thread\n");
-			GameThreads.is_thr_init = false;
+			GameThreads.is_thr_init[thr_input1] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;
@@ -165,31 +175,31 @@ void create_thread(int thrnum) {
 		GameThreads.is_thr_init[thr_input2] = true;
 		if (pthread_create(&GameThreads.thr[thr_input2], NULL, &input_thread, appArgs.pInput2) != 0) {
 			error_message("ERROR: Can't create Thread\n");
-			GameThreads.is_thr_init = false;
+			GameThreads.is_thr_init[thr_input2] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;
 	case thr_menu:
-		appArgs.pMenuThrArgs->is_thr_init = true;
-		if (pthread_create(&appArgs.GameThreads[thr_menu], NULL, &menu_thread, appArgs.pMenuThrArgs) != 0) {
+		GameThreads.is_thr_init[thr_menu] = true;
+		if (pthread_create(&GameThreads.thr[thr_menu], NULL, &menu_thread, appArgs.pMenuThrArgs) != 0) {
 			error_message("ERROR: Can't create Thread\n");
-			appArgs.pMenuThrArgs->is_thr_init = false;
+			GameThreads.is_thr_init[thr_menu] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;
 	case thr_snake1:
-		appArgs.pSnake1->is_thr_init = true;
-		if (pthread_create(&appArgs.GameThreads[thr_snake1], NULL, &snake_thread, appArgs.pSnake1) != 0) {
+		GameThreads.is_thr_init[thr_snake1] = true;
+		if (pthread_create(&GameThreads.thr[thr_snake1], NULL, &snake_thread, appArgs.pSnake1) != 0) {
 			error_message("ERROR: Can't create Thread\n");
-			appArgs.pSnake1->is_thr_init = false;
+			GameThreads.is_thr_init[thr_snake1] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;
 	case thr_snake2:
-		appArgs.pSnake2->is_thr_init = true;
-		if (pthread_create(&appArgs.GameThreads[thr_snake2], NULL, &snake_thread, appArgs.pSnake2) != 0) {
+		GameThreads.is_thr_init[thr_snake2] = true;
+		if (pthread_create(&GameThreads.thr[thr_snake2], NULL, &snake_thread, appArgs.pSnake2) != 0) {
 			error_message("ERROR: Can't create Thread\n");
-			appArgs.pSnake2->is_thr_init = false;
+			GameThreads.is_thr_init[thr_snake2] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;

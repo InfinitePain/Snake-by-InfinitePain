@@ -12,6 +12,7 @@
 #include "error_message.h"
 #include <setjmp.h>
 #include "appdata.h"
+#include "thread.h"
 
 jmp_buf jmp_buffer8;
 jmp_buf jmp_buffer9;
@@ -22,8 +23,6 @@ void delete_snake(Snake* pSnake) {
 		return;
 	}
 	delete_list(pSnake->pos_snake);
-	pthread_mutex_destroy(&pSnake->thr_mutex);
-	pthread_cond_destroy(&pSnake->pause_cond);
 	free(pSnake);
 	pSnake = NULL;
 }
@@ -44,10 +43,6 @@ Snake* create_snake() {
 	pSnake->gameState = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
-	pSnake->is_thr_init = false;
-	pthread_mutex_init(&pSnake->thr_mutex, NULL);
-	pthread_cond_init(&pSnake->pause_cond, NULL);
-	pSnake->pause_flag = true;
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 	return pSnake;
 }
@@ -91,7 +86,7 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
 	int key = pSnake->dir;
-	while (pSnake->is_thr_init) {
+	while () {
 		pthread_mutex_lock(&pSnake->thr_mutex);
 		while (pSnake->pause_flag) {
 			pthread_cond_wait(&pSnake->pause_cond, &pSnake->thr_mutex);
