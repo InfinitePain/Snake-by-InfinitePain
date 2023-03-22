@@ -42,6 +42,7 @@ jmp_buf jmp_buffer10;
 
 int main(void) {
 	if (setjmp(jmp_buffer10) != 1) {
+		// init_screen();
 		init_appData();
 	}
 	else {

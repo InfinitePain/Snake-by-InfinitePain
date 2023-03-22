@@ -18,10 +18,6 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 typedef struct MenuThrArgs {
-	bool is_thr_init;
-	bool pause_flag;
-	pthread_mutex_t thr_mutex;
-	pthread_cond_t pause_cond;
 	MENU* main_menu;
 	ITEM** main_menu_items;
 	int n_choices_main;

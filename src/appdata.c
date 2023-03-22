@@ -11,13 +11,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "terminal.h"
-#include "thread.h"
 
 appData appArgs = {
 	.appState = true,
-	.mutex_main = PTHREAD_MUTEX_INITIALIZER,
-	.cond_main = PTHREAD_COND_INITIALIZER,
-	.pause_flag_main = true,
 	.window_game = NULL,
 	.mutex_win_game = PTHREAD_MUTEX_INITIALIZER,
 	.window_menu = NULL,
@@ -32,8 +28,6 @@ appData appArgs = {
 };
 
 void init_appData() {
-	sleep(1);
-	init_screen();
 	appArgs.window_game = create_win(appArgs.window_game, LINES, COLS, 0, 0);
 	appArgs.window_menu = create_win(appArgs.window_menu, 8, 17, (LINES - 8) / 2, (COLS - 17) / 2);
 	//TODO error handling for window creation
@@ -58,8 +52,8 @@ void init_appData() {
 }
 
 void destroy_appData() {
-	pthread_mutex_destroy(&appArgs.mutex_main);
-	pthread_cond_destroy(&appArgs.cond_main);
+	pthread_mutex_destroy(&GameThreads.thr_mutex[thr_main]);
+	pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
 	delwin(appArgs.window_game);
 	delwin(appArgs.window_menu);
 	pthread_mutex_destroy(&appArgs.mutex_win_game);

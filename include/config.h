@@ -18,6 +18,7 @@
 
 typedef struct Config {
 	bool is_config_modable;
+	char* exe_path;
 	//Colors
 
 	int PLAYER_1_COLOR;

@@ -15,7 +15,8 @@
 extern jmp_buf jmp_buffer10;
 
 void init_screen() {
-    initscr();
+	sleep(1);
+	initscr();
 	cbreak();
 	noecho();
 	nodelay(stdscr, TRUE);

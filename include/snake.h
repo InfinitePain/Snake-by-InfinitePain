@@ -24,10 +24,6 @@ typedef struct Snake
 	int point;
 	int dir;
 	int color;
-	bool is_thr_init;
-	bool pause_flag;
-	pthread_mutex_t thr_mutex;
-	pthread_cond_t pause_cond;
 } Snake;
 
 void delete_snake(Snake* pSnake);

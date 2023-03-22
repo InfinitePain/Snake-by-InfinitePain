@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <ncurses.h>
+#include "thread.h"
 #include "config.h"
 #include "input.h"
 #include "mymenu.h"
@@ -20,31 +21,17 @@
 #include "wall.h"
 #include "menu.h"
 
-#define thr_main   5
-#define thr_input1 0
-#define thr_input2 1
-#define thr_menu   2
-#define thr_snake1 3
-#define thr_snake2 4
-
 typedef struct appData {
 	//main
-	
+
 	bool appState;
-	pthread_mutex_t mutex_main;
-	pthread_cond_t cond_main;
-	bool pause_flag_main;
-	
-	//threads
-	
-	pthread_t thr[5];
-	
+
 	//windows
-	
+
 	WINDOW* window_game;
 	pthread_mutex_t mutex_win_game;
 	WINDOW* window_menu;
-
+	
 	//game related
 
 	MenuThrArgs* pMenuThrArgs;

@@ -82,6 +82,7 @@ char* get_dir_path(Config* pConfig) {
 	buffer[path_size] = '\0';
 	char* dir_path = dirname(buffer);
 	char* exe_path = strdup(dir_path);
+	free(dir_path);
 	if (exe_path == NULL) {
 		free(buffer);
 		error_message("Error: Can't get file path. Configurations cannot be modified.");
@@ -128,6 +129,7 @@ Config* create_config() {
 		error_message("ERROR func create_config");
 		return NULL;
 	}
+	config->exe_path = get_dir_path(config);
 	return config;
 }
 
@@ -196,7 +198,6 @@ Config* read_config() {
 		longjmp(jmp_buffer10, 1);
 	}
 
-	char* exe_path = get_dir_path(pConfig);
 	if (!pConfig->is_config_modable) {
 		init_config_default(pConfig);
 		return pConfig;
@@ -204,10 +205,10 @@ Config* read_config() {
 	
 #ifdef __MINGW32__
 	char config_file[MAX_PATH];
-	snprintf(config_file, MAX_PATH, "%s\\configurations.txt", exe_path);
+	snprintf(config_file, MAX_PATH, "%s\\configurations.txt", pConfig->exe_path);
 #else
 	char config_file[PATH_MAX];
-	snprintf(config_file, PATH_MAX, "%s/configurations.txt", exe_path);
+	snprintf(config_file, PATH_MAX, "%s/configurations.txt", pConfig->exe_path);
 #endif
 
 	FILE* configurations = fopen(config_file, "r");
@@ -245,5 +246,6 @@ void delete_config(Config* pConfig) {
 		return;
 	}
 	free(pConfig);
+	free(pConfig->exe_path);
 	pConfig = NULL;
 }
