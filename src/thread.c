@@ -19,6 +19,10 @@ extern jmp_buf jmp_buffer10;
 
 void pause_thread(int thrnum) {
 	switch (thrnum) {
+	case thr_main:
+		pthread_mutex_lock(&appArgs.mutex_main);
+		appArgs.pause_flag_main = true;
+		pthread_mutex_unlock(&appArgs.mutex_main);
 	case thr_input1:
 		pthread_mutex_lock(&appArgs.pInput1->thr_mutex);
 		appArgs.pInput1->pause_flag = true;
@@ -49,6 +53,12 @@ void pause_thread(int thrnum) {
 
 void resume_thread(int thrnum) {
 	switch (thrnum) {
+	case thr_main:
+		pthread_mutex_lock(&appArgs.mutex_main);
+		appArgs.pause_flag_main = false;
+		pthread_cond_signal(&appArgs.cond_main);
+		pthread_mutex_unlock(&appArgs.mutex_main);
+		break;
 	case thr_input1:
 		pthread_mutex_lock(&appArgs.pInput1->thr_mutex);
 		appArgs.pInput1->pause_flag = false;

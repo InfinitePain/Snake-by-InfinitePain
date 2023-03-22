@@ -98,6 +98,10 @@ void* snake_thread(void* args) {
 			if (!pSnake->gameState) {
 				pSnake->pause_flag = true;
 			}
+			if (!appArgs.appState) {
+				pthread_mutex_unlock(&pSnake->thr_mutex);
+				pthread_exit(NULL);
+			}
 		}
 		pthread_mutex_unlock(&pSnake->thr_mutex);
 		

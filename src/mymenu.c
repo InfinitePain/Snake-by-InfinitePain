@@ -23,7 +23,7 @@ char* pause_menu_names[3] = { "    Resume   ", "   Settings  ", "     Quit    " 
 
 
 
-void single_start() {
+void func_Single_Player() {
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
@@ -31,7 +31,7 @@ void single_start() {
 	resume_thread(thr_snake1);
 }
 
-void multi_start() {
+void func_Multiplayer() {
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
@@ -41,7 +41,18 @@ void multi_start() {
 	resume_thread(thr_snake2);
 }
 
+void func_Settings() {
+	//TODO implement
+}
 
+void func_Quit() {
+	appArgs.appState = false;
+	pause_thread(thr_input1);
+	pause_thread(thr_input2);
+	pause_thread(thr_snake1);
+	pause_thread(thr_snake2);
+	resume_thread(thr_main);
+}
 
 void delete_menu(MENU* menu, ITEM** items, int n_choices) {
 	//TODO ask ChatGPT how he would implement
@@ -63,7 +74,8 @@ void delete_menuThrArgs() {
 	pthread_cond_destroy(&appArgs.pMenuThrArgs->pause_cond);
 	delete_menu(appArgs.pMenuThrArgs->main_menu, appArgs.pMenuThrArgs->main_menu_items, appArgs.pMenuThrArgs->n_choices_main);
 	delete_menu(appArgs.pMenuThrArgs->pause_menu, appArgs.pMenuThrArgs->pause_menu_items, appArgs.pMenuThrArgs->n_choices_pause);
-	delete_menu(appArgs.pMenuThrArgs->settings_menu, appArgs.pMenuThrArgs->settings_menu_items, appArgs.pMenuThrArgs->n_choices_settings);
+	//TODO Settings
+	// delete_menu(appArgs.pMenuThrArgs->settings_menu, appArgs.pMenuThrArgs->settings_menu_items, appArgs.pMenuThrArgs->n_choices_settings);
 }
 
 ITEM* create_item(char* string1, char* string2) {
@@ -161,8 +173,10 @@ void* menu_thread(void* args) {
 	ITEM* curItem;
 	int key;
 
-	set_item_userptr(pMenuThrArgs->main_menu->items[0], single_start);
-	set_item_userptr(pMenuThrArgs->main_menu->items[1], multi_start);
+	set_item_userptr(pMenuThrArgs->main_menu->items[0], func_Single_Player);
+	set_item_userptr(pMenuThrArgs->main_menu->items[1], func_Multiplayer);
+	set_item_userptr((pMenuThrArgs->main_menu->items[2]), func_Settings);
+	set_item_userptr((pMenuThrArgs->main_menu->items[3]), func_Quit);
 	void(*p)();
 
 
@@ -170,6 +184,10 @@ void* menu_thread(void* args) {
 		pthread_mutex_lock(&pMenuThrArgs->thr_mutex);
 		while (pMenuThrArgs->pause_flag) {
 			pthread_cond_wait(&pMenuThrArgs->pause_cond, &pMenuThrArgs->thr_mutex);
+			if (!appArgs.appState) {
+				pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
+				pthread_exit(NULL);
+			}
 		}
 		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
 		

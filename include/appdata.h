@@ -20,6 +20,7 @@
 #include "wall.h"
 #include "menu.h"
 
+#define thr_main   5
 #define thr_input1 0
 #define thr_input2 1
 #define thr_menu   2
@@ -57,5 +58,8 @@ typedef struct appData {
 } appData;
 
 extern appData appArgs;
+
+void init_appData();
+void destroy_appData();
 
 #endif /*APPDATA_H_*/
