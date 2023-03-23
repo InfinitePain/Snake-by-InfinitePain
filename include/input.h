@@ -19,8 +19,7 @@
 #define Key_ESC  27
 
 typedef struct Input {
-	pthread_mutex_t thr_mutex;
-	pthread_cond_t thr_cond;
+	//TODO delete this struct
 	WINDOW* window_input;
 } Input;
 

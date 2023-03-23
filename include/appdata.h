@@ -29,7 +29,6 @@ typedef struct appData {
 	//windows
 
 	WINDOW* window_game;
-	pthread_mutex_t mutex_win_game;
 	WINDOW* window_menu;
 	
 	//game related

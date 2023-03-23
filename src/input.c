@@ -24,9 +24,7 @@ void delete_input(Input* pInput) {
 	if (pInput->window_input != NULL) {
 		delwin(pInput->window_input);
 	}
-
-	pthread_mutex_destroy(&pInput->thr_mutex);
-	pthread_cond_destroy(&pInput->pause_cond);	
+	
 	free(pInput);
 	pInput = NULL;
 }
@@ -37,10 +35,6 @@ Input* create_input() {
 		error_message("ERROR func create_input");
 		longjmp(jmp_buffer10, 1);
 	}
-	pInput->is_thr_init = false;
-	pInput->pause_flag = true;
-	pthread_mutex_init(&pInput->thr_mutex, NULL);
-	pthread_cond_init(&pInput->pause_cond, NULL);
 	pInput->window_input = newwin(LINES, COLS, 0, 0);
 	if (pInput->window_input == NULL) {
 		error_message("ERROR func create_input");
@@ -87,7 +81,7 @@ void input_driver(const int key, Input* pInput) {
 		appArgs.pSnake2->dir = read_input(key);
 		break;
 	default:
-		if (key == 27) {
+		if (key == 27 || key == 34 || key == 94) {
 			pause_thread(thr_snake1);
 			pause_thread(thr_snake2);
 			pause_thread(thr_input1);
@@ -101,21 +95,22 @@ void input_driver(const int key, Input* pInput) {
 void* input_thread(void* args) {
 	Input* pInput = (Input*)args;
 	int inp, player, dir;
+	int thrnum = get_thrnum(pthread_self());
 	noecho();
 	cbreak();
 	nodelay(pInput->window_input, TRUE);
 	keypad(pInput->window_input, TRUE);
 	timeout(100);
-	while (pInput->is_thr_init) {
-		pthread_mutex_lock(&pInput->thr_mutex);
-		while (pInput->pause_flag){
-			pthread_cond_wait(&pInput->pause_cond, &pInput->thr_mutex);
+	while (GameThreads.is_thr_init[thrnum]) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
+		while (&GameThreads.pause_flag[thrnum]) {
+			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 			if (!appArgs.appState) {
-				pthread_mutex_unlock(&pInput->thr_mutex);
+				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
 		}
-		pthread_mutex_unlock(&pInput->thr_mutex);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		inp = wgetch(pInput->window_input);
 		if (inp != ERR) {
 			input_driver(inp, pInput);

@@ -70,8 +70,6 @@ void delete_menuThrArgs() {
 	if (appArgs.pMenuThrArgs == NULL) {
 		return;
 	}
-	pthread_mutex_destroy(&appArgs.pMenuThrArgs->thr_mutex);
-	pthread_cond_destroy(&appArgs.pMenuThrArgs->pause_cond);
 	delete_menu(appArgs.pMenuThrArgs->main_menu, appArgs.pMenuThrArgs->main_menu_items, appArgs.pMenuThrArgs->n_choices_main);
 	delete_menu(appArgs.pMenuThrArgs->pause_menu, appArgs.pMenuThrArgs->pause_menu_items, appArgs.pMenuThrArgs->n_choices_pause);
 	//TODO Settings
@@ -143,10 +141,6 @@ MenuThrArgs* create_menuThrArgs() {
 	if (pMenuThrArgs == NULL) {
 		longjmp(jmp_buffer10, 1);
 	}
-	pMenuThrArgs->is_thr_init = false;
-	pthread_cond_init(&pMenuThrArgs->pause_cond, NULL);
-	pthread_mutex_init(&pMenuThrArgs->thr_mutex, NULL);
-	pMenuThrArgs->pause_flag = true;
 	
 	pMenuThrArgs->n_choices_main = ARRAY_SIZE(main_menu_names);
 	pMenuThrArgs->main_menu_items = create_item_list(main_menu_names, NULL, pMenuThrArgs->n_choices_main);
@@ -172,7 +166,7 @@ void* menu_thread(void* args) {
 
 	ITEM* curItem;
 	int key;
-
+	int thrnum = get_thrnum(pthread_self());
 	set_item_userptr(pMenuThrArgs->main_menu->items[0], func_Single_Player);
 	set_item_userptr(pMenuThrArgs->main_menu->items[1], func_Multiplayer);
 	set_item_userptr((pMenuThrArgs->main_menu->items[2]), func_Settings);
@@ -180,16 +174,16 @@ void* menu_thread(void* args) {
 	void(*p)();
 
 
-	while (pMenuThrArgs->is_thr_init) {
-		pthread_mutex_lock(&pMenuThrArgs->thr_mutex);
-		while (pMenuThrArgs->pause_flag) {
-			pthread_cond_wait(&pMenuThrArgs->pause_cond, &pMenuThrArgs->thr_mutex);
+	while (GameThreads.is_thr_init[thrnum]) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
+		while (GameThreads.pause_flag[thrnum]) {
+			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 			if (!appArgs.appState) {
-				pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
+				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
 		}
-		pthread_mutex_unlock(&pMenuThrArgs->thr_mutex);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
 		set_menu_format(pMenuThrArgs->main_menu, 4, 1);
 		box(appArgs.window_menu, 0, 0);

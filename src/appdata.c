@@ -15,7 +15,6 @@
 appData appArgs = {
 	.appState = true,
 	.window_game = NULL,
-	.mutex_win_game = PTHREAD_MUTEX_INITIALIZER,
 	.window_menu = NULL,
 	.pMenuThrArgs = NULL,
 	.pConfig = NULL,
@@ -52,11 +51,8 @@ void init_appData() {
 }
 
 void destroy_appData() {
-	pthread_mutex_destroy(&GameThreads.thr_mutex[thr_main]);
-	pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
 	delwin(appArgs.window_game);
 	delwin(appArgs.window_menu);
-	pthread_mutex_destroy(&appArgs.mutex_win_game);
 	destroy_thread(thr_menu);
 	delete_menuThrArgs();
 	delete_config(appArgs.pConfig);

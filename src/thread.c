@@ -20,9 +20,27 @@ extern jmp_buf jmp_buffer10;
 Threads GameThreads = {
 	.is_thr_init = { false, false, false, false, false },
 	.pause_flag = { true, true, true, true, true },
-	.thr_mutex = { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER },
+	.thr_mutex = { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER },
 	.pause_cond = { PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER }
 };
+
+int get_thrnum(pthread_t thr_id) {
+	if (pthread_equal(thr_id, GameThreads.thr[thr_input1])) {
+		return thr_input1;
+	}
+	else if (pthread_equal(thr_id, GameThreads.thr[thr_input2])) {
+		return thr_input2;
+	}
+	else if (pthread_equal(thr_id, GameThreads.thr[thr_menu])) {
+		return thr_menu;
+	}
+	else if (pthread_equal(thr_id, GameThreads.thr[thr_snake1])) {
+		return thr_snake1;
+	}
+	else if (pthread_equal(thr_id, GameThreads.thr[thr_snake2])) {
+		return thr_snake2;
+	}
+}
 
 void pause_thread(int thrnum) {
 	switch (thrnum) {

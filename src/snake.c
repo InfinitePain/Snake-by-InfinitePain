@@ -86,31 +86,32 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
 	int key = pSnake->dir;
-	while () {
-		pthread_mutex_lock(&pSnake->thr_mutex);
-		while (pSnake->pause_flag) {
-			pthread_cond_wait(&pSnake->pause_cond, &pSnake->thr_mutex);
+	int thrnum = get_thrnum(pthread_self());
+	while (GameThreads.is_thr_init[thrnum]) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
+		while (GameThreads.pause_flag[thrnum]) {
+			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 			if (!pSnake->gameState) {
-				pSnake->pause_flag = true;
+				GameThreads.pause_flag[thrnum] = true;
 			}
 			if (!appArgs.appState) {
-				pthread_mutex_unlock(&pSnake->thr_mutex);
+				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
 		}
-		pthread_mutex_unlock(&pSnake->thr_mutex);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
 		if (setjmp(jmp_buffer9) != 1) {
 			if (pSnake->dir != key) {
 				key = pSnake->dir;
 			}
-			pthread_mutex_lock(&appArgs.mutex_win_game);
+			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 			list_printer(pSnake->pos_snake, appArgs.pConfig->BACKGROUND_COLOR, 0, appArgs.window_game);
-			pthread_mutex_unlock(&appArgs.mutex_win_game);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			move_snake(appArgs.pConfig, key, pSnake);
-			pthread_mutex_lock(&appArgs.mutex_win_game);
+			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 			list_printer(pSnake->pos_snake, pSnake->color, 0, appArgs.window_game);
-			pthread_mutex_unlock(&appArgs.mutex_win_game);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			usleep(100000);
 		}
 		else {

@@ -41,8 +41,18 @@ jmp_buf jmp_buffer10;
 
 
 int main(void) {
+	// while (1)
+	// {
+	// 	initscr();
+	// 	cbreak();
+	// 	noecho();
+	// 	nodelay(stdscr, FALSE);
+	// 	int a = getch();
+	// 	printw("%i", a);
+	// }
+
 	if (setjmp(jmp_buffer10) != 1) {
-		// init_screen();
+		init_screen();
 		init_appData();
 	}
 	else {
@@ -56,11 +66,11 @@ int main(void) {
 	
 	resume_thread(thr_menu);
 	
-	pthread_mutex_lock(&appArgs.mutex_main);
-	if (appArgs.pause_flag_main == true) {
-		pthread_cond_wait(&appArgs.cond_main, &appArgs.mutex_main);
+	pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
+	if (GameThreads.pause_flag[thr_main]) {
+		pthread_cond_wait(&GameThreads.pause_cond[thr_main], &GameThreads.thr_mutex[thr_main]);
 	}
-	pthread_mutex_unlock(&appArgs.mutex_main);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
 
 	destroy_appData();
 	destroy_screen();
