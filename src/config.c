@@ -245,7 +245,7 @@ void delete_config(Config* pConfig) {
 	if (pConfig == NULL) {
 		return;
 	}
-	free(pConfig);
 	free(pConfig->exe_path);
+	free(pConfig);
 	pConfig = NULL;
 }

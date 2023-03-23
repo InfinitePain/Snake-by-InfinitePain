@@ -118,64 +118,20 @@ void resume_thread(int thrnum) {
 }
 
 void destroy_thread(int thrnum) {
-	switch (thrnum) {
-	case thr_input1:
-		if (GameThreads.is_thr_init[thr_input1]) {
-			pause_thread(thr_input1);
-			GameThreads.is_thr_init[thr_input1] = false;
-			resume_thread(thr_input1);
-			pthread_join(GameThreads.thr[thr_input1], NULL);
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_input1]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_input1]);
-		}
-		break;
-	case thr_input2:
-		if (GameThreads.is_thr_init[thr_input2]) {
-			pause_thread(thr_input2);
-			GameThreads.is_thr_init[thr_input2] = false;
-			resume_thread(thr_input2);
-			pthread_join(GameThreads.thr[thr_input2], NULL);
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_input2]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_input2]);
-		}
-		break;
-	case thr_menu:
-		if (GameThreads.is_thr_init[thr_menu]) {
-			pause_thread(thr_menu);
-			GameThreads.is_thr_init[thr_menu] = false;
-			resume_thread(thr_menu);
-			pthread_join(GameThreads.thr[thr_menu], NULL);
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_menu]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_menu]);
-		}
-		break;
-	case thr_snake1:
-		if (GameThreads.is_thr_init[thr_snake1]) {
-			pause_thread(thr_snake1);
-			GameThreads.is_thr_init[thr_snake1] = false;
-			resume_thread(thr_snake1);
-			pthread_join(GameThreads.thr[thr_snake1], NULL);
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_snake1]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_snake1]);
-		}
-		break;
-	case thr_snake2:
-		if (GameThreads.is_thr_init[thr_snake2]) {
-			pause_thread(thr_snake2);
-			GameThreads.is_thr_init[thr_snake2] = false;
-			resume_thread(thr_snake2);
-			pthread_join(GameThreads.thr[thr_snake2], NULL);
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_snake2]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_snake2]);
-		}
-		break;
-	case thr_main:
-		if (GameThreads.is_thr_init[thr_main]) {
-			GameThreads.is_thr_init[thr_main] = false;
-			pthread_mutex_destroy(&GameThreads.thr_mutex[thr_main]);
-			pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
-		}
-		break;
+	if (GameThreads.is_thr_init[thrnum] && thrnum < 5) {
+		pause_thread(thrnum);
+		GameThreads.is_thr_init[thrnum] = false;
+		resume_thread(thrnum);
+		pthread_join(GameThreads.thr[thrnum], NULL);
+		pthread_mutex_destroy(&GameThreads.thr_mutex[thrnum]);
+		pthread_cond_destroy(&GameThreads.pause_cond[thrnum]);
+	}
+	else if (thrnum == thr_main) {
+		GameThreads.is_thr_init[thr_main] = false;
+		pthread_mutex_destroy(&GameThreads.thr_mutex[thr_main]);
+		pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
+		pthread_mutex_destroy(&GameThreads.thr_mutex[mutex_win_game]);
+		pthread_mutex_destroy(&GameThreads.thr_mutex[mutex_win_menu]);
 	}
 }
 

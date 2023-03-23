@@ -103,7 +103,7 @@ void* input_thread(void* args) {
 	timeout(100);
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
-		while (&GameThreads.pause_flag[thrnum]) {
+		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 			if (!appArgs.appState) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
