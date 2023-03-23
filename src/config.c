@@ -82,7 +82,6 @@ char* get_dir_path(Config* pConfig) {
 	buffer[path_size] = '\0';
 	char* dir_path = dirname(buffer);
 	char* exe_path = strdup(dir_path);
-	free(dir_path);
 	if (exe_path == NULL) {
 		free(buffer);
 		error_message("Error: Can't get file path. Configurations cannot be modified.");

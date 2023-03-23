@@ -65,4 +65,5 @@ void destroy_appData() {
 	delete_snake(appArgs.pSnake1);
 	destroy_thread(thr_snake2);
 	delete_snake(appArgs.pSnake2);
+	destroy_thread(thr_main);
 }
