@@ -18,12 +18,14 @@ jmp_buf jmp_buffer11;
 
 
 char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
-char* pause_menu_names[3] = { "    Resume   ", "   Settings  ", "     Quit    " };
+char* pause_menu_names[3] = { "  Continue   ", "  Settings   ", "    Quit     " };
 //char* settings[];//TODO add settings
 
 
 
 void func_Single_Player() {
+	GAME_STATE = STARTED;
+	GAME_MODE = SINGLE_PLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
@@ -32,6 +34,8 @@ void func_Single_Player() {
 }
 
 void func_Multiplayer() {
+	GAME_STATE = STARTED;
+	GAME_MODE = MULTIPLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
@@ -46,12 +50,24 @@ void func_Settings() {
 }
 
 void func_Quit() {
+	//TODO turn appArgs.appState to enum
 	appArgs.appState = false;
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
 	pause_thread(thr_snake1);
 	pause_thread(thr_snake2);
 	resume_thread(thr_main);
+}
+
+void func_Continue() {
+	switch (GAME_MODE) {
+	case SINGLE_PLAYER:
+		func_Single_Player();
+		break;
+	case MULTIPLAYER:
+		func_Multiplayer();
+		break;
+	}
 }
 
 void delete_menu(MENU* menu, ITEM** items, int n_choices) {
@@ -167,10 +183,19 @@ void* menu_thread(void* args) {
 	ITEM* curItem;
 	int key;
 	int thrnum = get_thrnum(pthread_self());
+	MENU* curMenu = pMenuThrArgs->main_menu;
+	//TODO turn these to a function
 	set_item_userptr(pMenuThrArgs->main_menu->items[0], func_Single_Player);
 	set_item_userptr(pMenuThrArgs->main_menu->items[1], func_Multiplayer);
 	set_item_userptr((pMenuThrArgs->main_menu->items[2]), func_Settings);
 	set_item_userptr((pMenuThrArgs->main_menu->items[3]), func_Quit);
+	set_menu_format(pMenuThrArgs->main_menu, 4, 1);
+	
+	set_item_userptr(pMenuThrArgs->pause_menu->items[0], func_Continue);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[1], func_Settings);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[2], func_Quit);
+	set_menu_format(pMenuThrArgs->pause_menu, 3, 1);
+	
 	void(*p)();
 
 
@@ -185,27 +210,35 @@ void* menu_thread(void* args) {
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
-		set_menu_format(pMenuThrArgs->main_menu, 4, 1);
 		box(appArgs.window_menu, 0, 0);
 		mvwaddch(appArgs.window_menu, 2, 0, ACS_LTEE);
 		mvwhline(appArgs.window_menu, 2, 1, ACS_HLINE, 15);
 		mvwaddch(appArgs.window_menu, 2, 16, ACS_RTEE);
 		mvwprintw(appArgs.window_menu, 1, 3, "Snake by IP");
-		post_menu(pMenuThrArgs->main_menu);
+		switch (GAME_STATE) {
+		case NOT_STARTED:
+			curMenu = pMenuThrArgs->main_menu;
+			break;
+		case STARTED:
+			curMenu = pMenuThrArgs->pause_menu;
+			break;
+		}
+		
+		post_menu(curMenu);
 		wrefresh(appArgs.window_menu);
 		while ((key = wgetch(appArgs.window_menu)) != '\n') {
 		switch (key) {
 		case KEY_DOWN:
-			menu_driver(pMenuThrArgs->main_menu, REQ_DOWN_ITEM);
+			menu_driver(curMenu, REQ_DOWN_ITEM);
 			break;
 		case KEY_UP:
-			menu_driver(pMenuThrArgs->main_menu, REQ_UP_ITEM);
+			menu_driver(curMenu, REQ_UP_ITEM);
 			break;
 		}
 		}
-		curItem = current_item(pMenuThrArgs->main_menu);
+		curItem = current_item(curMenu);
 		p = item_userptr(curItem);
-		unpost_menu(pMenuThrArgs->main_menu);
+		unpost_menu(curMenu);
 		wclear(appArgs.window_menu);
 		wrefresh(appArgs.window_menu);
 		pause_thread(thr_menu);

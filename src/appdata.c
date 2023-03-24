@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include "terminal.h"
 
+GameState GAME_STATE = NOT_STARTED;
+GameMode GAME_MODE;
+
 appData appArgs = {
 	.appState = true,
 	.window_game = NULL,

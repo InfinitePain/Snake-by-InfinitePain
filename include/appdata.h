@@ -21,6 +21,21 @@
 #include "wall.h"
 #include "menu.h"
 
+typedef enum GameState {
+	NOT_STARTED,
+	STARTED,
+	SETTINGS
+} GameState;
+
+
+typedef enum GameMode {
+	SINGLE_PLAYER,
+	MULTIPLAYER
+} GameMode;
+
+extern GameState GAME_STATE;
+extern GameMode GAME_MODE;
+
 typedef struct appData {
 	//main
 
