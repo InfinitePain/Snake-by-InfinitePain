@@ -41,16 +41,6 @@ jmp_buf jmp_buffer10;
 
 
 int main(void) {
-	// while (1)
-	// {
-	// 	initscr();
-	// 	cbreak();
-	// 	noecho();
-	// 	nodelay(stdscr, FALSE);
-	// 	int a = getch();
-	// 	printw("%i", a);
-	// }
-
 	if (setjmp(jmp_buffer10) != 1) {
 		init_screen();
 		init_appData();
@@ -63,15 +53,39 @@ int main(void) {
 		destroy_screen();
 		return EXIT_FAILURE;
 	}
-	
+
 	resume_thread(thr_menu);
 	
-	pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
-	if (GameThreads.pause_flag[thr_main]) {
-		pthread_cond_wait(&GameThreads.pause_cond[thr_main], &GameThreads.thr_mutex[thr_main]);
-	}
-	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
+	while (GAME_STATE != QUIT) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
+		if (GameThreads.pause_flag[thr_main]) {
+			pthread_cond_wait(&GameThreads.pause_cond[thr_main], &GameThreads.thr_mutex[thr_main]);
+		}
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
 
+		switch (GAME_STATE) {
+		case MAIN_MENU:
+			if (GAME_MODE == SINGLE_PLAYER) {
+				restart_snake(appArgs.pSnake1);
+				appArgs.pSnake1->dir = MOVE_RIGHT;
+			}
+			else if (GAME_MODE == MULTIPLAYER) {
+				restart_snake(appArgs.pSnake1);
+				appArgs.pSnake1->dir = MOVE_RIGHT;
+				restart_snake(appArgs.pSnake2);
+				appArgs.pSnake2->dir = MOVE_RIGHT;
+			}
+			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
+			break;
+		case STARTED:
+			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
+			break;
+		case CRITICAL_ERROR:
+			longjmp(jmp_buffer10, 1);
+			break;
+		}
+			pause_thread(thr_main);
+	}
 	destroy_appData();
 	destroy_screen();
 	return EXIT_SUCCESS;

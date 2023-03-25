@@ -12,11 +12,10 @@
 #include <unistd.h>
 #include "terminal.h"
 
-GameState GAME_STATE = NOT_STARTED;
-GameMode GAME_MODE;
+GameState GAME_STATE = MAIN_MENU;
+GameMode GAME_MODE = NOT_SELECTED;
 
 appData appArgs = {
-	.appState = true,
 	.window_game = NULL,
 	.window_menu = NULL,
 	.pMenuThrArgs = NULL,

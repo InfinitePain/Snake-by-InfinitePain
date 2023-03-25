@@ -18,30 +18,40 @@ jmp_buf jmp_buffer11;
 
 
 char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
-char* pause_menu_names[3] = { "  Continue   ", "  Settings   ", "    Quit     " };
+char* pause_menu_names[4] = { "  Continue   ", "    Back     ", "  Settings   ", "    Quit     " };
 //char* settings[];//TODO add settings
 
 
 
 void func_Single_Player() {
+	wclear(appArgs.window_game);
+	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
+	resume_thread(thr_main);
+	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 	GAME_STATE = STARTED;
 	GAME_MODE = SINGLE_PLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
-	appArgs.pSnake1->gameState = true;
+	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 }
 
 void func_Multiplayer() {
+	wclear(appArgs.window_game);
+	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
+	resume_thread(thr_main);
+	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 	GAME_STATE = STARTED;
 	GAME_MODE = MULTIPLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
-	appArgs.pSnake1->gameState = true;
+	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
-	appArgs.pSnake2->gameState = true;
+	appArgs.pSnake2->is_alive = true;
 	resume_thread(thr_snake2);
 }
 
@@ -51,7 +61,7 @@ void func_Settings() {
 
 void func_Quit() {
 	//TODO turn appArgs.appState to enum
-	appArgs.appState = false;
+	GAME_STATE = QUIT;
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
 	pause_thread(thr_snake1);
@@ -70,8 +80,12 @@ void func_Continue() {
 	}
 }
 
+void func_Back() {
+	GAME_STATE = MAIN_MENU;
+	resume_thread(thr_menu);
+}
+
 void delete_menu(MENU* menu, ITEM** items, int n_choices) {
-	//TODO ask ChatGPT how he would implement
 	if (menu != NULL) {
 		free_menu(menu);
 	}
@@ -192,9 +206,10 @@ void* menu_thread(void* args) {
 	set_menu_format(pMenuThrArgs->main_menu, 4, 1);
 	
 	set_item_userptr(pMenuThrArgs->pause_menu->items[0], func_Continue);
-	set_item_userptr(pMenuThrArgs->pause_menu->items[1], func_Settings);
-	set_item_userptr(pMenuThrArgs->pause_menu->items[2], func_Quit);
-	set_menu_format(pMenuThrArgs->pause_menu, 3, 1);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[1], func_Back);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[2], func_Settings);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[3], func_Quit);
+	set_menu_format(pMenuThrArgs->pause_menu, 4, 1);
 	
 	void(*p)();
 
@@ -203,7 +218,7 @@ void* menu_thread(void* args) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
-			if (!appArgs.appState) {
+			if (GAME_STATE == QUIT) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
@@ -216,7 +231,7 @@ void* menu_thread(void* args) {
 		mvwaddch(appArgs.window_menu, 2, 16, ACS_RTEE);
 		mvwprintw(appArgs.window_menu, 1, 3, "Snake by IP");
 		switch (GAME_STATE) {
-		case NOT_STARTED:
+		case MAIN_MENU:
 			curMenu = pMenuThrArgs->main_menu;
 			break;
 		case STARTED:

@@ -105,7 +105,7 @@ void* input_thread(void* args) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
-			if (!appArgs.appState) {
+			if (GAME_STATE == QUIT) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}

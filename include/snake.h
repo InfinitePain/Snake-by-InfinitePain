@@ -19,7 +19,7 @@
 typedef struct Snake
 {
 	
-	bool gameState;
+	bool is_alive;
 	List* pos_snake;
 	int grow;
 	int point;
@@ -29,7 +29,9 @@ typedef struct Snake
 
 void delete_snake(Snake* pSnake);
 Snake* create_snake();
+void restart_snake(Snake* pSnake);
 void move_snake(const Config* pConfig, int direction, Snake* pSnake);
+bool is_key_reverse(int key, int dir);
 void* snake_thread(void* args);
 
 #endif /*SNAKE_H_*/

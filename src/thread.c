@@ -43,78 +43,16 @@ int get_thrnum(pthread_t thr_id) {
 }
 
 void pause_thread(int thrnum) {
-	switch (thrnum) {
-	case thr_main:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
-		GameThreads.pause_flag[thr_main] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
-	case thr_input1:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_input1]);
-		GameThreads.pause_flag[thr_input1] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_input1]);
-		break;
-	case thr_input2:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_input2]);
-		GameThreads.pause_flag[thr_input2] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_input2]);
-		break;
-	case thr_menu:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
-		GameThreads.pause_flag[thr_menu] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
-		break;
-	case thr_snake1:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake1]);
-		GameThreads.pause_flag[thr_snake1] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake1]);
-		break;
-	case thr_snake2:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake2]);
-		GameThreads.pause_flag[thr_snake2] = true;
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake2]);
-		break;
-	}
+	pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
+	GameThreads.pause_flag[thrnum] = true;
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 }
 
 void resume_thread(int thrnum) {
-	switch (thrnum) {
-	case thr_main:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
-		GameThreads.pause_flag[thr_main] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_main]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
-		break;
-	case thr_input1:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_input1]);
-		GameThreads.pause_flag[thr_input1] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_input1]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_input1]);
-		break;
-	case thr_input2:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_input2]);
-		GameThreads.pause_flag[thr_input2] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_input2]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_input2]);
-		break;
-	case thr_menu:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
-		GameThreads.pause_flag[thr_menu] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
-		break;
-	case thr_snake1:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake1]);
-		GameThreads.pause_flag[thr_snake1] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_snake1]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake1]);
-		break;
-	case thr_snake2:
-		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake2]);
-		GameThreads.pause_flag[thr_snake2] = false;
-		pthread_cond_signal(&GameThreads.pause_cond[thr_snake2]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake2]);
-		break;
-	}
+	pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
+	GameThreads.pause_flag[thrnum] = false;
+	pthread_cond_signal(&GameThreads.pause_cond[thrnum]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 }
 
 void destroy_thread(int thrnum) {

@@ -40,11 +40,25 @@ Snake* create_snake() {
 		error_message("ERROR: Can't initialize Snake");
 		longjmp(jmp_buffer10, 1);
 	}
-	pSnake->gameState = true;
+	pSnake->is_alive = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 	return pSnake;
+}
+
+void restart_snake(Snake* pSnake) {
+	delete_list(pSnake->pos_snake);
+	pSnake->pos_snake = create_list();
+		if (pSnake->pos_snake == NULL)
+	{
+		error_message("ERROR: Can't initialize Snake");
+		longjmp(jmp_buffer10, 1);
+	}
+	pSnake->is_alive = true;
+	pSnake->point = 0;
+	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
+	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 }
 
 void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
@@ -81,7 +95,21 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 	}
 }
 
-
+bool is_key_reverse(int key, int dir) {
+	if (key == MOVE_UP && dir == MOVE_DOWN) {
+		return true;
+	}
+	else if (key == MOVE_DOWN && dir == MOVE_UP) {
+		return true;
+	}
+	else if (key == MOVE_LEFT && dir == MOVE_RIGHT) {
+		return true;
+	}
+	else if (key == MOVE_RIGHT && dir == MOVE_LEFT) {
+		return true;
+	}
+	return false;
+}
 
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
@@ -91,10 +119,12 @@ void* snake_thread(void* args) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
-			if (!pSnake->gameState) {
+			if (!pSnake->is_alive) {
 				GameThreads.pause_flag[thrnum] = true;
+				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
+				break;
 			}
-			if (!appArgs.appState) {
+			if (GAME_STATE == QUIT) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
@@ -102,7 +132,7 @@ void* snake_thread(void* args) {
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
 		if (setjmp(jmp_buffer9) != 1) {
-			if (pSnake->dir != key) {
+			if (pSnake->dir != key && !is_key_reverse(key, pSnake->dir)) {
 				key = pSnake->dir;
 			}
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
@@ -115,7 +145,13 @@ void* snake_thread(void* args) {
 			usleep(100000);
 		}
 		else {
-			pthread_exit(NULL);
+			GAME_STATE = CRITICAL_ERROR;
+			pause_thread(thr_snake1);
+			pause_thread(thr_snake2);
+			pause_thread(thr_input1);
+			pause_thread(thr_input2);
+			pause_thread(thr_menu);
+			resume_thread(thr_main);
 		}
 	}
 	pthread_exit(NULL);

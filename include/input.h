@@ -19,7 +19,7 @@
 #define Key_ESC  27
 
 typedef struct Input {
-	//TODO delete this struct
+	//TODO delete this struct Idea: use a sturct for all windows
 	WINDOW* window_input;
 } Input;
 

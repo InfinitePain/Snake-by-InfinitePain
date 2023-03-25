@@ -22,13 +22,16 @@
 #include "menu.h"
 
 typedef enum GameState {
-	NOT_STARTED,
+	MAIN_MENU,
 	STARTED,
-	SETTINGS
+	SETTINGS,
+	QUIT,
+	CRITICAL_ERROR,
 } GameState;
 
 
 typedef enum GameMode {
+	NOT_SELECTED,
 	SINGLE_PLAYER,
 	MULTIPLAYER
 } GameMode;
@@ -37,10 +40,6 @@ extern GameState GAME_STATE;
 extern GameMode GAME_MODE;
 
 typedef struct appData {
-	//main
-
-	bool appState;
-
 	//windows
 
 	WINDOW* window_game;
