@@ -45,26 +45,26 @@ Input* create_input() {
 }
 
 int read_input(const int key) {
-	if (key == appArgs.pConfig->PLAYER_1_UP || key == appArgs.pConfig->PLAYER_2_UP) {
+	if (key == appArgs.pConfig->configs[PLAYER_1_UP] || key == appArgs.pConfig->configs[PLAYER_2_UP]) {
 		return MOVE_UP;
 	}
-	else if (key == appArgs.pConfig->PLAYER_1_LEFT || key == appArgs.pConfig->PLAYER_2_LEFT) {
+	else if (key == appArgs.pConfig->configs[PLAYER_1_LEFT] || key == appArgs.pConfig->configs[PLAYER_2_LEFT]) {
 		return MOVE_LEFT;
 	}
-	else if (key == appArgs.pConfig->PLAYER_1_RIGHT || key == appArgs.pConfig->PLAYER_2_RIGHT) {
+	else if (key == appArgs.pConfig->configs[PLAYER_1_RIGHT] || key == appArgs.pConfig->configs[PLAYER_2_RIGHT]) {
 		return MOVE_RIGHT;
 	}
-	else if (key == appArgs.pConfig->PLAYER_1_DOWN || key == appArgs.pConfig->PLAYER_2_DOWN) {
+	else if (key == appArgs.pConfig->configs[PLAYER_1_DOWN] || key == appArgs.pConfig->configs[PLAYER_2_DOWN]) {
 		return MOVE_DOWN;
 	}
 	return -1;
 }
 
 int differentiator(const int key) {
-	if (key == appArgs.pConfig->PLAYER_1_UP || key == appArgs.pConfig->PLAYER_1_LEFT || key == appArgs.pConfig->PLAYER_1_RIGHT || key == appArgs.pConfig->PLAYER_1_DOWN) {
+	if (key == appArgs.pConfig->configs[PLAYER_1_UP] || key == appArgs.pConfig->configs[PLAYER_1_LEFT] || key == appArgs.pConfig->configs[PLAYER_1_RIGHT] || key == appArgs.pConfig->configs[PLAYER_1_DOWN]) {
 		return 1;
 	}
-	else if (key == appArgs.pConfig->PLAYER_2_UP || key == appArgs.pConfig->PLAYER_2_LEFT || key == appArgs.pConfig->PLAYER_2_RIGHT || key == appArgs.pConfig->PLAYER_2_DOWN) {
+	else if (key == appArgs.pConfig->configs[PLAYER_2_UP] || key == appArgs.pConfig->configs[PLAYER_2_LEFT] || key == appArgs.pConfig->configs[PLAYER_2_RIGHT] || key == appArgs.pConfig->configs[PLAYER_2_DOWN]) {
 		return 2;
 	}
 	return -1;

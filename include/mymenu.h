@@ -32,10 +32,18 @@ typedef struct MenuThrArgs {
 void delete_menu(MENU* menu, ITEM** items, int n_choices);
 void delete_menuThrArgs();
 ITEM* create_item(char* string1, char* string2);
+void settingsfunction();
+void get_config_value_names(char* config_value_names[]);
+int value_changer(ITEM* item, MENU* menu);
+void change_config(int setting, int value);
+int color_to_num(const char* str);
+char* num_to_color(int num);
 ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices);
 MENU* create_menu(ITEM** items);
 void set_menu_attr(MENU* menu);
 MenuThrArgs* create_menuThrArgs();
+void print_menu(MENU* menu, char* title);
+void erase_menu(MENU* menu);
 void* menu_thread(void* args);
 
 #endif /*MYMENU_H_*/
