@@ -30,13 +30,10 @@ appData appArgs = {
 
 void init_appData() {
 	appArgs.window_game = create_win(appArgs.window_game, LINES, COLS, 0, 0);
-	appArgs.window_menu = create_win(appArgs.window_menu, 8, 17, (LINES - 8) / 2, (COLS - 17) / 2);
-	//TODO error handling for window creation
-
-
+	appArgs.window_menu = create_win(appArgs.window_menu, 8, 28, (LINES - 8) / 2, (COLS - 28) / 2);
+	appArgs.pConfig = read_config();
 	appArgs.pMenuThrArgs = create_menuThrArgs();
 	create_thread(thr_menu);
-	appArgs.pConfig = read_config();
 	appArgs.pInput1 = create_input();
 	create_thread(thr_input1);
 	appArgs.pInput2 = create_input();
@@ -45,11 +42,11 @@ void init_appData() {
 	appArgs.pSnake1 = create_snake();
 	create_thread(thr_snake1);
 	appArgs.pSnake1->dir = MOVE_RIGHT;
-	appArgs.pSnake1->color = appArgs.pConfig->PLAYER_1_COLOR;
+	appArgs.pSnake1->color = &appArgs.pConfig->configs[PLAYER_1_COLOR];
 	appArgs.pSnake2 = create_snake();
 	create_thread(thr_snake2);
 	appArgs.pSnake2->dir = MOVE_RIGHT;
-	appArgs.pSnake2->color = appArgs.pConfig->PLAYER_2_COLOR;
+	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
 }
 
 void destroy_appData() {

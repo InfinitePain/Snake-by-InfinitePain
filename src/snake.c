@@ -42,7 +42,7 @@ Snake* create_snake() {
 	}
 	pSnake->is_alive = true;
 	pSnake->point = 0;
-	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
+	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 	return pSnake;
 }
@@ -57,7 +57,7 @@ void restart_snake(Snake* pSnake) {
 	}
 	pSnake->is_alive = true;
 	pSnake->point = 0;
-	pSnake->grow = appArgs.pConfig->SNAKE_LENGTH;
+	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
 	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
 }
 
@@ -136,11 +136,11 @@ void* snake_thread(void* args) {
 				key = pSnake->dir;
 			}
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, appArgs.pConfig->BACKGROUND_COLOR, 0, appArgs.window_game);
+			list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appArgs.window_game);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			move_snake(appArgs.pConfig, key, pSnake);
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, pSnake->color, 0, appArgs.window_game);
+			list_printer(pSnake->pos_snake, *pSnake->color, 0, appArgs.window_game);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			usleep(100000);
 		}

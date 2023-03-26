@@ -24,7 +24,7 @@ typedef struct Snake
 	int grow;
 	int point;
 	int dir;
-	int color;
+	int* color;
 } Snake;
 
 void delete_snake(Snake* pSnake);

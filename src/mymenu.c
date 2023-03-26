@@ -12,6 +12,7 @@
 #include <string.h>
 #include "appdata.h"
 #include "thread.h"
+#include "config.h"
 
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
@@ -19,8 +20,8 @@ jmp_buf jmp_buffer11;
 
 char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
 char* pause_menu_names[4] = { "  Continue   ", "    Back     ", "  Settings   ", "    Quit     " };
-//char* settings[];//TODO add settings
-
+char* settings[5] = { "Player 1 Color", "Player 2 Color", "Wall Color", "Background Color", "Food Color" };
+char* config_value_names[5];
 
 
 void func_Single_Player() {
@@ -33,7 +34,7 @@ void func_Single_Player() {
 	GAME_MODE = SINGLE_PLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
-	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
+	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appArgs.window_game);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 }
@@ -48,7 +49,7 @@ void func_Multiplayer() {
 	GAME_MODE = MULTIPLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
-	list_printer(appArgs.pWall, appArgs.pConfig->WALL_COLOR, 0, appArgs.window_game);
+	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appArgs.window_game);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 	appArgs.pSnake2->is_alive = true;
@@ -57,10 +58,14 @@ void func_Multiplayer() {
 
 void func_Settings() {
 	//TODO implement
+	GAME_STATE = SETTINGS;
+	settingsfunction();
+	GAME_STATE = MAIN_MENU;
+	resume_thread(thr_menu);
+	
 }
 
 void func_Quit() {
-	//TODO turn appArgs.appState to enum
 	GAME_STATE = QUIT;
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
@@ -102,8 +107,7 @@ void delete_menuThrArgs() {
 	}
 	delete_menu(appArgs.pMenuThrArgs->main_menu, appArgs.pMenuThrArgs->main_menu_items, appArgs.pMenuThrArgs->n_choices_main);
 	delete_menu(appArgs.pMenuThrArgs->pause_menu, appArgs.pMenuThrArgs->pause_menu_items, appArgs.pMenuThrArgs->n_choices_pause);
-	//TODO Settings
-	// delete_menu(appArgs.pMenuThrArgs->settings_menu, appArgs.pMenuThrArgs->settings_menu_items, appArgs.pMenuThrArgs->n_choices_settings);
+	delete_menu(appArgs.pMenuThrArgs->settings_menu, appArgs.pMenuThrArgs->settings_menu_items, appArgs.pMenuThrArgs->n_choices_settings);
 }
 
 ITEM* create_item(char* string1, char* string2) {
@@ -128,8 +132,12 @@ ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices) {
 	
 	if (setjmp(jmp_buffer11) != 1) {
 		for (int i = 0; i < n_choices; i++) {
-			items[i] = create_item(choices1[i], NULL);
-
+			if (choices2 != NULL && choices2[i] != NULL) {
+				items[i] = create_item(choices1[i], choices2[i]);
+			}
+			else {
+				items[i] = create_item(choices1[i], NULL);
+			}
 		}
 		items[n_choices] = (ITEM*)NULL;
 	}
@@ -141,6 +149,194 @@ ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices) {
 		longjmp(jmp_buffer10, 1);
 	}
 	return items;
+}
+
+void get_config_value_names(char* config_value_names[]) {
+	//TODO turn 5 to original value
+	for (int i = 0; i < 5; i++) {
+		config_value_names[i] = num_to_color(appArgs.pConfig->configs[i]);
+	}
+}
+
+ITEM** create_iset(char* choices1[], int n_choices) {
+	ITEM** items = (ITEM**)calloc(n_choices, sizeof(ITEM*));
+	memset(items, 0, n_choices * sizeof(ITEM*));
+	if (items == NULL) {
+		longjmp(jmp_buffer10, 1);
+	}
+	
+	for (int i = 0; i < n_choices; i++) {
+		items[i] = create_item(choices1[i], num_to_color(appArgs.pConfig->configs[i] ));
+
+	}
+	items[n_choices] = (ITEM*)NULL;
+	return items;
+}
+
+void settingsfunction() {
+	ITEM* curitem;
+	int key, value, setting;
+
+
+
+	print_menu(appArgs.pMenuThrArgs->settings_menu, "Settings");
+	while (key != KEY_F(1)) {	
+		while ((key = wgetch(appArgs.window_menu)) != '\n') {
+			switch (key) {
+			case KEY_DOWN:
+				menu_driver(appArgs.pMenuThrArgs->settings_menu, REQ_DOWN_ITEM);
+				break;
+			case KEY_UP:
+				menu_driver(appArgs.pMenuThrArgs->settings_menu, REQ_UP_ITEM);
+				break;
+			}
+			if (key == KEY_F(1)) {
+				break;
+			}
+		}
+		if (key == KEY_F(1)) {
+			break;
+		}
+		curitem = current_item(appArgs.pMenuThrArgs->settings_menu);
+		setting = item_index(curitem);
+		value = value_changer(curitem, appArgs.pMenuThrArgs->settings_menu);
+		change_config(setting, value);
+
+	}
+	erase_menu(appArgs.pMenuThrArgs->settings_menu);
+}
+
+void change_config(int setting, int value) {
+	switch (setting) {
+	case 0:
+		appArgs.pConfig->configs[PLAYER_1_COLOR] = value;
+		break;
+	case 1:
+		appArgs.pConfig->configs[PLAYER_2_COLOR] = value;
+		break;
+	case 2:
+		appArgs.pConfig->configs[WALL_COLOR] = value;
+		break;
+	case 3:
+		appArgs.pConfig->configs[BACKGROUND_COLOR] = value;
+		break;
+	case 4:
+		appArgs.pConfig->configs[FOOD_COLOR] = value;
+		break;
+	case 5:
+		appArgs.pConfig->configs[TEXT_1_COLOR] = value;
+		break;
+	case 6:
+		appArgs.pConfig->configs[TEXT_2_COLOR] = value;
+		break;
+	case 7:
+		appArgs.pConfig->configs[PLAYER_1_UP] = value;
+		break;
+	case 8:
+		appArgs.pConfig->configs[PLAYER_1_LEFT] = value;
+		break;
+	case 9:
+		appArgs.pConfig->configs[PLAYER_1_RIGHT] = value;
+		break;
+	case 10:
+		appArgs.pConfig->configs[PLAYER_1_DOWN] = value;
+		break;
+	case 11:
+		appArgs.pConfig->configs[PLAYER_2_UP] = value;
+		break;
+	case 12:
+		appArgs.pConfig->configs[PLAYER_2_LEFT] = value;
+		break;
+	case 13:
+		appArgs.pConfig->configs[PLAYER_2_RIGHT] = value;
+		break;
+	case 14:
+		appArgs.pConfig->configs[PLAYER_2_DOWN] = value;
+		break;
+	case 15:
+		appArgs.pConfig->configs[SCREEN_OFFSET_X] = value;
+		break;
+	case 16:
+		appArgs.pConfig->configs[SCREEN_OFFSET_Y] = value;
+		break;
+	}
+	write_config(appArgs.pConfig);
+}
+
+int value_changer(ITEM* item, MENU* menu) {
+	int key;
+	int color_number = color_to_num(item->description.str);
+	while ((key = wgetch(appArgs.window_menu)) != '\n') {
+		switch (key) {
+		case KEY_DOWN:
+			color_number--;
+			if (color_number == 0) {
+				color_number = 8;
+			}
+			item->description.str = num_to_color(color_number);
+			unpost_menu(menu);
+			post_menu(menu);
+			break;
+		case KEY_UP:
+			color_number++;
+			if (color_number == 9) {
+				color_number = 1;
+			}
+			item->description.str = num_to_color(color_number);
+			unpost_menu(menu);
+			post_menu(menu);
+			break;
+		}
+	}
+	return color_number;
+}
+
+int color_to_num(const char* str) {
+	if (strcmp(str, "  Black") == 0) {
+		return 1;
+	}
+	else if (strcmp(str, "   Blue") == 0) {
+		return 2;
+	}
+	else if (strcmp(str, "  Green") == 0) {
+		return 3;
+	}
+	else if (strcmp(str, "   Cyan") == 0) {
+		return 4;
+	}
+	else if (strcmp(str, "    Red") == 0) {
+		return 5;
+	}
+	else if (strcmp(str, "Magenta") == 0) {
+		return 6;
+	}
+	else if (strcmp(str, " Yellow") == 0) {
+		return 7;
+	}
+	else if (strcmp(str, "  White") == 0) {
+		return 8;
+	}
+}
+
+char* num_to_color(int num) {
+	switch (num) {
+	case 1:
+		return "  Black";
+	case 2:
+		return "   Blue";
+	case 3:
+		return "  Green";
+	case 4:
+		return "   Cyan";
+	case 5:
+		return "    Red";
+	case 6:
+		return "Magenta";
+	case 7:
+		return " Yellow";
+	case 8:
+		return "  White";
+	}
 }
 
 MENU* create_menu(ITEM** items) {
@@ -164,6 +360,7 @@ void set_menu_attr(MENU* menu) {
 	}
 	set_menu_sub(menu, subwindow);
 	set_menu_mark(menu, "");
+	set_menu_format(menu, 4, 1);
 }
 
 MenuThrArgs* create_menuThrArgs() {
@@ -176,15 +373,49 @@ MenuThrArgs* create_menuThrArgs() {
 	pMenuThrArgs->main_menu_items = create_item_list(main_menu_names, NULL, pMenuThrArgs->n_choices_main);
 	pMenuThrArgs->main_menu = create_menu(pMenuThrArgs->main_menu_items);
 	set_menu_attr(pMenuThrArgs->main_menu);
-	
+	set_item_userptr(pMenuThrArgs->main_menu->items[0], func_Single_Player);
+	set_item_userptr(pMenuThrArgs->main_menu->items[1], func_Multiplayer);
+	set_item_userptr((pMenuThrArgs->main_menu->items[2]), func_Settings);
+	set_item_userptr((pMenuThrArgs->main_menu->items[3]), func_Quit);
+
 	pMenuThrArgs->n_choices_pause = ARRAY_SIZE(pause_menu_names);
 	pMenuThrArgs->pause_menu_items =  create_item_list(pause_menu_names, NULL, pMenuThrArgs->n_choices_pause);
 	pMenuThrArgs->pause_menu = create_menu(pMenuThrArgs->pause_menu_items);
 	set_menu_attr(pMenuThrArgs->pause_menu);
-	
+	set_item_userptr(pMenuThrArgs->pause_menu->items[0], func_Continue);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[1], func_Back);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[2], func_Settings);
+	set_item_userptr(pMenuThrArgs->pause_menu->items[3], func_Quit);
+
 	//TODO add settings
+	pMenuThrArgs->n_choices_settings = ARRAY_SIZE(settings);
+	get_config_value_names(config_value_names);
+	pMenuThrArgs->settings_menu_items = create_item_list(settings, config_value_names, pMenuThrArgs->n_choices_settings);
+	pMenuThrArgs->settings_menu = create_menu(pMenuThrArgs->settings_menu_items);
+	set_menu_attr(pMenuThrArgs->settings_menu);
+
 	return pMenuThrArgs;
 }
+
+void print_menu(MENU* menu, char* title) {
+	int height = getmaxy(appArgs.window_menu);
+	int width = getmaxx(appArgs.window_menu);
+    
+    box(appArgs.window_menu, 0, 0);
+    mvwaddch(appArgs.window_menu, 2, 0, ACS_LTEE);
+    mvwhline(appArgs.window_menu, 2, 1, ACS_HLINE, width);
+    mvwaddch(appArgs.window_menu, 2, width - 1, ACS_RTEE);
+	mvwprintw(appArgs.window_menu, 1, (width - strlen(title)) / 2, "%s", title);
+	post_menu(menu);
+	wrefresh(appArgs.window_menu);
+}
+
+void erase_menu(MENU* menu) {
+	unpost_menu(menu);
+	wclear(appArgs.window_menu);
+	wrefresh(appArgs.window_menu);
+}
+
 
 void* menu_thread(void* args) {
 	MenuThrArgs* pMenuThrArgs = (MenuThrArgs*)args;
@@ -198,18 +429,6 @@ void* menu_thread(void* args) {
 	int key;
 	int thrnum = get_thrnum(pthread_self());
 	MENU* curMenu = pMenuThrArgs->main_menu;
-	//TODO turn these to a function
-	set_item_userptr(pMenuThrArgs->main_menu->items[0], func_Single_Player);
-	set_item_userptr(pMenuThrArgs->main_menu->items[1], func_Multiplayer);
-	set_item_userptr((pMenuThrArgs->main_menu->items[2]), func_Settings);
-	set_item_userptr((pMenuThrArgs->main_menu->items[3]), func_Quit);
-	set_menu_format(pMenuThrArgs->main_menu, 4, 1);
-	
-	set_item_userptr(pMenuThrArgs->pause_menu->items[0], func_Continue);
-	set_item_userptr(pMenuThrArgs->pause_menu->items[1], func_Back);
-	set_item_userptr(pMenuThrArgs->pause_menu->items[2], func_Settings);
-	set_item_userptr(pMenuThrArgs->pause_menu->items[3], func_Quit);
-	set_menu_format(pMenuThrArgs->pause_menu, 4, 1);
 	
 	void(*p)();
 
@@ -225,22 +444,17 @@ void* menu_thread(void* args) {
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
-		box(appArgs.window_menu, 0, 0);
-		mvwaddch(appArgs.window_menu, 2, 0, ACS_LTEE);
-		mvwhline(appArgs.window_menu, 2, 1, ACS_HLINE, 15);
-		mvwaddch(appArgs.window_menu, 2, 16, ACS_RTEE);
-		mvwprintw(appArgs.window_menu, 1, 3, "Snake by IP");
 		switch (GAME_STATE) {
 		case MAIN_MENU:
 			curMenu = pMenuThrArgs->main_menu;
+			print_menu(curMenu, "Snake by IP");
 			break;
 		case STARTED:
 			curMenu = pMenuThrArgs->pause_menu;
+			print_menu(curMenu, "Game Paused");	
 			break;
 		}
 		
-		post_menu(curMenu);
-		wrefresh(appArgs.window_menu);
 		while ((key = wgetch(appArgs.window_menu)) != '\n') {
 		switch (key) {
 		case KEY_DOWN:
@@ -253,9 +467,7 @@ void* menu_thread(void* args) {
 		}
 		curItem = current_item(curMenu);
 		p = item_userptr(curItem);
-		unpost_menu(curMenu);
-		wclear(appArgs.window_menu);
-		wrefresh(appArgs.window_menu);
+		erase_menu(curMenu);
 		pause_thread(thr_menu);
 		p();
 
