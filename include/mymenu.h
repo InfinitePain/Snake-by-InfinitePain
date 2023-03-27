@@ -42,8 +42,12 @@ ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices);
 MENU* create_menu(ITEM** items);
 void set_menu_attr(MENU* menu);
 MenuThrArgs* create_menuThrArgs();
-void print_menu(MENU* menu, char* title);
-void erase_menu(MENU* menu);
+void print_menu(MenuThrArgs* menuArgs);
+void erase_menu(MenuThrArgs* menuArgs);
+void erase_info();
+void menu_info();
+void setting_info();
+void chg_info();
 void* menu_thread(void* args);
 
 #endif /*MYMENU_H_*/

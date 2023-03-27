@@ -8,6 +8,7 @@
  ============================================================================
  */
 
+#include "CMakeProjectConfig.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <ncurses.h>
@@ -40,7 +41,7 @@ jmp_buf jmp_buffer10;
 
 
 
-int main(void) {
+int main(int argc, char* argv[]) {
 	if (setjmp(jmp_buffer10) != 1) {
 		init_screen();
 		init_appData();
@@ -54,6 +55,7 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 	wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT]-2, appArgs.pConfig->configs[SCREEN_WIDTH]-8, "V %i.%i.%i", PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
 	refresh();
 	resume_thread(thr_menu);
 	

@@ -79,10 +79,10 @@ void init_screen() {
 }
 
 void create_app_windows() {
-	appWindows[INPUT1_WIN] = create_win(1, 1, 0, 0);
-	appWindows[INPUT2_WIN] = create_win(1, 1, 0, 0);
-	appWindows[GAME_WIN] = create_win(appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, appArgs.pConfig->configs[SCREEN_WIDTH] - 2, 1, 1);
-	appWindows[MENU_WIN] = create_win(8, 28, (appArgs.pConfig->configs[SCREEN_HEIGHT] - 8) / 2, (appArgs.pConfig->configs[SCREEN_WIDTH] - 28) / 2);
+	appWindows[INPUT1_WIN] = create_win(1, 1, 1, 1);
+	appWindows[INPUT2_WIN] = create_win(1, 1, 1, 1);
+	appWindows[GAME_WIN] = create_win(appArgs.pConfig->configs[SCREEN_HEIGHT] - 6, appArgs.pConfig->configs[SCREEN_WIDTH] - 6, 3, 3);
+	appWindows[MENU_WIN] = create_win(15, 30, (appArgs.pConfig->configs[SCREEN_HEIGHT] - 15) / 2, (appArgs.pConfig->configs[SCREEN_WIDTH] - 30) / 2);
 }
 
 void destroy_screen() {

@@ -16,6 +16,8 @@
 #include "error_message.h"
 
 #include "terminal.h"
+#define SPACED 0
+#define NOT_SPACED 1
 
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
@@ -46,6 +48,7 @@ char* config_value_names[5];
 
 void func_Single_Player() {
 	wclear(appWindows[GAME_WIN]);
+	erase_info();
 	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
 	resume_thread(thr_main);
 	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
@@ -61,6 +64,7 @@ void func_Single_Player() {
 
 void func_Multiplayer() {
 	wclear(appWindows[GAME_WIN]);
+	erase_info();
 	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
 	resume_thread(thr_main);
 	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
@@ -78,6 +82,7 @@ void func_Multiplayer() {
 
 void func_Settings() {
 	//TODO implement
+	setting_info();
 	GAME_STATE = SETTINGS;
 	settingsfunction();
 	GAME_STATE = MAIN_MENU;
@@ -182,8 +187,8 @@ void settingsfunction() {
 	ITEM* curitem;
 	int key, value, setting;
 
-	print_menu(appArgs.pMenuThrArgs->settings_menu, "Settings");
-	while (key != KEY_F(1)) {	
+	print_menu(appArgs.pMenuThrArgs);
+	while (key != 27 || key != 34 || key != 94) {	
 		while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
 			switch (key) {
 			case KEY_DOWN:
@@ -193,20 +198,21 @@ void settingsfunction() {
 				menu_driver(appArgs.pMenuThrArgs->settings_menu, REQ_UP_ITEM);
 				break;
 			}
-			if (key == KEY_F(1)) {
+			if (key == 27 || key == 34 || key == 94) {
 				break;
 			}
 		}
-		if (key == KEY_F(1)) {
+		if (key == 27 || key == 34 || key == 94) {
 			break;
 		}
 		curitem = current_item(appArgs.pMenuThrArgs->settings_menu);
 		setting = item_index(curitem);
 		value = value_changer(curitem, appArgs.pMenuThrArgs->settings_menu);
-		change_config(setting, value);
-
+		if (value != -1) {
+			change_config(setting, value);
+		}
 	}
-	erase_menu(appArgs.pMenuThrArgs->settings_menu);
+	erase_menu(appArgs.pMenuThrArgs);
 }
 
 void change_config(int setting, int value) {
@@ -262,14 +268,31 @@ void change_config(int setting, int value) {
 	case 16:
 		appArgs.pConfig->configs[SCREEN_OFFSET_Y] = value;
 		break;
-	}
+	case 17:
+		appArgs.pConfig->configs[SCREEN_WIDTH] = value;
+		break;
+	case 18:
+		appArgs.pConfig->configs[SCREEN_HEIGHT] = value;
+		break;
+	case 19:
+		appArgs.pConfig->configs[PLAYER_1_POINT] = value;
+		break;
+	case 20:
+		appArgs.pConfig->configs[PLAYER_2_POINT] = value;
+		break;
+	case 21:
+		appArgs.pConfig->configs[SNAKE_LENGTH] = value;
+		break;
+	}		
 	write_config(appArgs.pConfig);
 }
 
 int value_changer(ITEM* item, MENU* menu) {
+	chg_info();
 	int key;
+	int color_number_old = color_to_num(item->description.str);
 	int color_number = color_to_num(item->description.str);
-	while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
+	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
 		switch (key) {
 		case KEY_DOWN:
 			color_number--;
@@ -291,6 +314,12 @@ int value_changer(ITEM* item, MENU* menu) {
 			break;
 		}
 	}
+	if (key == 27 || key == 34 || key == 94) {
+		item->description.str = num_to_color(color_number_old);
+		unpost_menu(menu);
+		post_menu(menu);
+		return -1;
+	}
 	return color_number;
 }
 
@@ -298,25 +327,25 @@ int color_to_num(const char* str) {
 	if (strcmp(str, "  Black") == 0) {
 		return 1;
 	}
-	else if (strcmp(str, "   Blue") == 0) {
+	else if (strcmp(str, "       Blue") == 0) {
 		return 2;
 	}
-	else if (strcmp(str, "  Green") == 0) {
+	else if (strcmp(str, "      Green") == 0) {
 		return 3;
 	}
-	else if (strcmp(str, "   Cyan") == 0) {
+	else if (strcmp(str, "       Cyan") == 0) {
 		return 4;
 	}
-	else if (strcmp(str, "    Red") == 0) {
+	else if (strcmp(str, "        Red") == 0) {
 		return 5;
 	}
-	else if (strcmp(str, "Magenta") == 0) {
+	else if (strcmp(str, "    Magenta") == 0) {
 		return 6;
 	}
-	else if (strcmp(str, " Yellow") == 0) {
+	else if (strcmp(str, "     Yellow") == 0) {
 		return 7;
 	}
-	else if (strcmp(str, "  White") == 0) {
+	else if (strcmp(str, "      White") == 0) {
 		return 8;
 	}
 }
@@ -324,21 +353,21 @@ int color_to_num(const char* str) {
 char* num_to_color(int num) {
 	switch (num) {
 	case 1:
-		return "  Black";
+		return "      Black";
 	case 2:
-		return "   Blue";
+		return "       Blue";
 	case 3:
-		return "  Green";
+		return "      Green";
 	case 4:
-		return "   Cyan";
+		return "       Cyan";
 	case 5:
-		return "    Red";
+		return "        Red";
 	case 6:
-		return "Magenta";
+		return "    Magenta";
 	case 7:
-		return " Yellow";
+		return "     Yellow";
 	case 8:
-		return "  White";
+		return "      White";
 	}
 }
 
@@ -357,7 +386,7 @@ void set_menu_attr(MENU* menu) {
 	width = getmaxx(appWindows[MENU_WIN]);
 	height = getmaxy(appWindows[MENU_WIN]);
 	WINDOW* subwindow = NULL;
-	subwindow = derwin(appWindows[MENU_WIN], height - 4, width - 3, 3, 2);
+	subwindow = derwin(appWindows[MENU_WIN], height - 4, width - 2, 3, 1);
 	if (subwindow == NULL) {
 		error_message("ERROR: func set_menu_attr: derwin() failed");
 		longjmp(jmp_buffer10, 1);
@@ -397,28 +426,134 @@ MenuThrArgs* create_menuThrArgs() {
 	pMenuThrArgs->settings_menu_items = create_item_list(settings, config_value_names, pMenuThrArgs->n_choices_settings);
 	pMenuThrArgs->settings_menu = create_menu(pMenuThrArgs->settings_menu_items);
 	set_menu_attr(pMenuThrArgs->settings_menu);
+	set_menu_format(pMenuThrArgs->settings_menu, 10, 1);
 
 	return pMenuThrArgs;
 }
 
-void print_menu(MENU* menu, char* title) {
+void print_menu(MenuThrArgs* menuArgs) {
+	MENU* menu;
+	char* title;
+	bool is_spaced;
+	switch (GAME_STATE) {
+	case MAIN_MENU:
+		title = "Snake by InfinitePain";
+		menu = menuArgs->main_menu;
+		is_spaced = true;
+ 		break;
+	case STARTED:
+		title = "Game Paused";
+		menu = menuArgs->pause_menu;
+		is_spaced = true;
+		break;
+	case SETTINGS:
+		title = "Settings";
+		menu = menuArgs->settings_menu;
+		is_spaced = false;
+		break;
+	}
+	
 	int height = getmaxy(appWindows[MENU_WIN]);
-	int width = getmaxx(appWindows[MENU_WIN]);
+    int width = getmaxx(appWindows[MENU_WIN]);
+    ITEM **items = menu_items(menu);
+    int count = item_count(menu);
+    int current = item_index(current_item(menu));
+    int menu_height = count * 2;
+    int title_spacing = 2;
+	int menu_start_y = (height - menu_height) / 2 + title_spacing;
+
+
+    post_menu(menu);
+    if (is_spaced) {
+        wclear(appWindows[MENU_WIN]);
+        for (int i = 0; i < count; ++i) {
+            if (i == current) {
+                wattron(appWindows[MENU_WIN], A_REVERSE);
+            }
+            mvwprintw(appWindows[MENU_WIN], menu_start_y + 2 * i, (width - strlen(item_name(items[i]))) / 2, "%s", item_name(items[i]));
+            if (i == current) {
+                wattroff(appWindows[MENU_WIN], A_REVERSE);
+            }
+        }
+    }
     box(appWindows[MENU_WIN], 0, 0);
-	mvwaddch(appWindows[MENU_WIN], 2, 0, ACS_LTEE);
-	mvwhline(appWindows[MENU_WIN], 2, 1, ACS_HLINE, width);
-	mvwaddch(appWindows[MENU_WIN], 2, width - 1, ACS_RTEE);
-	mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
-	post_menu(menu);
-	wrefresh(appWindows[MENU_WIN]);
+    mvwaddch(appWindows[MENU_WIN], title_spacing, 0, ACS_LTEE);
+    mvwhline(appWindows[MENU_WIN], title_spacing, 1, ACS_HLINE, width - 2);
+    mvwaddch(appWindows[MENU_WIN], title_spacing, width - 1, ACS_RTEE);
+    mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title); // Print title with 1 line of spacing
+    wrefresh(appWindows[MENU_WIN]);
 }
 
-void erase_menu(MENU* menu) {
+
+
+
+void erase_menu(MenuThrArgs* menuArgs) {
+	MENU* menu;
+	switch (GAME_STATE) {
+	case MAIN_MENU:
+		menu = menuArgs->main_menu;
+		break;
+	case STARTED:
+		menu = menuArgs->pause_menu;
+		break;
+	case SETTINGS:
+		menu = menuArgs->settings_menu;
+		break;
+	}
 	unpost_menu(menu);
 	wclear(appWindows[MENU_WIN]);
 	wrefresh(appWindows[MENU_WIN]);
 }
 
+void erase_info() {
+	for (int i = 1; i < appArgs.pConfig->configs[SCREEN_WIDTH] - 8; i++) {
+		mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, i, ' ');
+	}
+	wrefresh(stdscr);
+}
+
+void menu_info() {
+	erase_info();
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 1, ACS_LARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 2, ACS_LRCORNER);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 3, " to select highlighted option");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 33, ACS_VLINE);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 35, ACS_UARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 36, '/');
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 37, ACS_DARROW);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 38, " to change highlighted option");
+	wrefresh(stdscr);
+}
+
+void setting_info() {
+	erase_info();
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 1, ACS_LARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 2, ACS_LRCORNER);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 4, "sel");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 7, ACS_VLINE);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 8, ACS_UARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 9, '/');
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 10, ACS_DARROW);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 12, "chg opt");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 19, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 21, "esc back");
+	wrefresh(stdscr);
+}
+
+void chg_info() {
+	erase_info();
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 1, ACS_LARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 2, ACS_LRCORNER);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 4, "confirm");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 12, ACS_VLINE);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 14, ACS_UARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 15, '/');
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 16, ACS_DARROW);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 18, "chg val");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 25, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 27, "esc cancel");
+	wrefresh(stdscr);
+}
 
 void* menu_thread(void* args) {
 	MenuThrArgs* pMenuThrArgs = (MenuThrArgs*)args;
@@ -429,10 +564,10 @@ void* menu_thread(void* args) {
 	
 
 	ITEM* curItem;
-	int key;
+	int key, index = 0;
 	int thrnum = get_thrnum(pthread_self());
 	MENU* curMenu = pMenuThrArgs->main_menu;
-	
+
 	void(*p)();
 
 
@@ -446,31 +581,53 @@ void* menu_thread(void* args) {
 			}
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-		
+
 		switch (GAME_STATE) {
 		case MAIN_MENU:
 			curMenu = pMenuThrArgs->main_menu;
-			print_menu(curMenu, "Snake by IP");
+			menu_info();
+			wrefresh(stdscr);
 			break;
 		case STARTED:
 			curMenu = pMenuThrArgs->pause_menu;
-			print_menu(curMenu, "Game Paused");	
+			menu_info();
+			break;
+		case SETTINGS:
+			curMenu = pMenuThrArgs->settings_menu;
+			curMenu = pMenuThrArgs->pause_menu;			
 			break;
 		}
 		
+
+		print_menu(pMenuThrArgs);
 		while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
-		switch (key) {
-		case KEY_DOWN:
-			menu_driver(curMenu, REQ_DOWN_ITEM);
-			break;
-		case KEY_UP:
-			menu_driver(curMenu, REQ_UP_ITEM);
-			break;
-		}
+			switch (key) {
+			case KEY_DOWN:
+				index++;
+				if (index == 4) {
+					index = 0;
+					menu_driver(curMenu, REQ_FIRST_ITEM);
+				}
+				else {
+					menu_driver(curMenu, REQ_DOWN_ITEM);
+				}
+				break;
+			case KEY_UP:
+				index--;
+				if (index == -1) {
+					index = 3;
+					menu_driver(curMenu, REQ_LAST_ITEM);
+				}
+				else {
+					menu_driver(curMenu, REQ_UP_ITEM);
+				}
+				break;
+			}
+			print_menu(pMenuThrArgs);
 		}
 		curItem = current_item(curMenu);
 		p = item_userptr(curItem);
-		erase_menu(curMenu);
+		erase_menu(pMenuThrArgs);
 		pause_thread(thr_menu);
 		p();
 

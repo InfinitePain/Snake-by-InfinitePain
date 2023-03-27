@@ -1,18 +1,19 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Snake-by-InfinitePain VERSION 0.4.0)
+project(Snake-by-InfinitePain VERSION 0.6.0)
 
 # Set the output directory for the binary file
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/)
 
 # configure a header file to pass some of the CMake settings
 # to the source code
-configure_file(CMakeProjectConfig.h.in CMakeProjectConfig.h)
+configure_file(${PROJECT_SOURCE_DIR}/CMakeProjectConfig.h.in CMakeProjectConfig.h)
 
 # Set up source directories and files
 include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR})
 
 # Add any additional libraries
 if(WIN32)
