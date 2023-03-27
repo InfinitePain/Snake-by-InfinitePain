@@ -21,12 +21,37 @@
 #include <unistd.h>
 #include <libgen.h>
 #elif __APPLE__
+#include <limits.h>
 #include <unistd.h>
 #include <mach-o/dyld.h>
 #include <libgen.h>
 #endif
 
 extern jmp_buf jmp_buffer10;
+char* config_names[NUM_CONFIGS] = {
+	"PLAYER 1 COLOR",
+	"PLAYER 2 COLOR",
+	"WALL COLOR",
+	"BACKGROUND COLOR",
+	"FOOD COLOR",
+	"TEXT 1 COLOR",
+	"TEXT 2 COLOR",
+	"PLAYER 1 UP",
+	"PLAYER 1 LEFT",
+	"PLAYER 1 RIGHT",
+	"PLAYER 1 DOWN",
+	"PLAYER 2 UP",
+	"PLAYER 2 LEFT",
+	"PLAYER 2 RIGHT",
+	"PLAYER 2 DOWN",
+	"SCREEN OFFSET X",
+	"SCREEN OFFSET Y",
+	"SCREEN WIDTH",
+	"SCREEN HEIGHT",
+	"PLAYER 1 POINT",
+	"PLAYER 2 POINT",
+	"SNAKE LENGTH"
+};
 
 void config_info() {
 	mvprintw(error_line, 0, "Press any key to continue. . .");
@@ -40,36 +65,64 @@ void get_config_path(Config* pConfig) {
 #ifdef __MINGW32__
 	char* buffer = (char*)malloc(MAX_PATH);
 	if (buffer == NULL) {
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
-
+	pConfig->config_path = (char*)malloc(MAX_PATH);
+	if (pConfig->config_path == NULL) {
+		free(buffer);
+		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
+		config_info();
+		return;
+	}
+	
 	DWORD path_size = GetModuleFileName(NULL, buffer, MAX_PATH);
 	if (path_size == 0 || path_size == MAX_PATH) {
 		free(buffer);
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
 	PathRemoveFileSpec(buffer);
 	char* exe_path = _strdup(buffer);
 	if (exe_path == NULL) {
 		free(buffer);
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
-
+	snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", exe_path);
 #elif __linux__
-	char* buffer = (char*)malloc(PATH_MAX);
-	if (buffer == NULL) {
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+	long path_max = pathconf("/", _PC_PATH_MAX);
+	if (path_max == -1) {
+		error_message("ERROR: Can't get max path length. Changing the configurations won't be permanent.");
 		config_info();
+		return;
+	}
+	pConfig->config_path = (char*)malloc(path_max);
+	if (pConfig->config_path == NULL) {
+		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
+		config_info();
+		return;
+	}
+	char* buffer = (char*)malloc(path_max);
+	if (buffer == NULL) {
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
+		config_info();
+		return;
 	}
 	
-	ssize_t path_size  = readlink("/proc/self/exe", buffer, PATH_MAX - 1);
+	ssize_t path_size  = readlink("/proc/self/exe", buffer, path_max - 1);
 	if (path_size  == -1) {
 		free(buffer);
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
 	
 	buffer[path_size] = '\0';
@@ -77,40 +130,51 @@ void get_config_path(Config* pConfig) {
 	char* exe_path = strdup(dir_path);
 	if (exe_path == NULL) {
 		free(buffer);
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
+	snprintf(pConfig->config_path, path_max, "%s/configurations.txt", exe_path);
 #elif __APPLE__
 	//TODO I don't have any apple device so test if this even works
 	char* buffer = (char*)malloc(PATH_MAX);
 	if (buffer == NULL) {
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
+		return;
 	}
+	pConfig->config_path = (char*)malloc(PATH_MAX);
+	if (pConfig->config_path == NULL) {
+		free(buffer);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
+		config_info();
+		return;
+	}
+
 	uint32_t path_size = PATH_MAX;
 	if (_NSGetExecutablePath(buffer, &path_size) != 0) {
 		free(buffer);
-		error_message("Error: Can't get file path. Changing the configurations won't be permanent.");
+		free(pConfig->config_path);
+		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
 		config_info();
-    }
+		return;
+	}
 	char* dir_path = dirname(buffer);
 	char* exe_path = strdup(dir_path);
 	if (exe_path == NULL) {
 		free(buffer);
+		free(pConfig->config_path);
 		config_info();
+		return;
 	}
+	snprintf(pConfig->config_path, PATH_MAX, "%s/configurations.txt", exe_path);
 #else
-	mvprintw(error_line, 0, "Error: Unsupported Platform. Changing the configurations won't be permanent.\nPress any key to continue. . .");
+	mvprintw(error_line, 0, "ERROR: Unsupported Platform. Changing the configurations won't be permanent.\nPress any key to continue. . .");
 	refresh();
 	error_line++;
 	getchar();
 	clear();
-#endif
-#ifdef __MINGW32__
-	snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", exe_path);
-#else
-	char pConfig->config_path[PATH_MAX];
-	snprintf(pConfig->config_path, PATH_MAX, "%s/configurations.txt", exe_path);
 #endif
 	free(buffer);
 	free(exe_path);
@@ -120,7 +184,7 @@ void get_config_path(Config* pConfig) {
 Config* create_config() {
 	Config* config = (Config*)malloc(sizeof(Config));
 	if (config == NULL) {
-		error_message("ERROR func create_config");
+		error_message("ERROR func create_config(): malloc");
 		return NULL;
 	}
 	get_config_path(config);
@@ -134,32 +198,15 @@ void write_config(Config* pConfig) {
 	
 	FILE* configurations = fopen(pConfig->config_path, "w");
 	if (configurations == NULL) {
-		error_message("ERROR func write_config");
+		error_message("ERROR func write_config(): fopen");
 		config_info();
 		pConfig->is_configurable = false;
 		return;
 	}
-	
-	fprintf(configurations, "PLAYER_1_COLOR=%i\n", pConfig->configs[PLAYER_1_COLOR]);
-	fprintf(configurations, "PLAYER_2_COLOR=%i\n", pConfig->configs[PLAYER_2_COLOR]);
-	fprintf(configurations, "WALL_COLOR=%i\n", pConfig->configs[WALL_COLOR]);
-	fprintf(configurations, "BACKGROUND_COLOR=%i\n", pConfig->configs[BACKGROUND_COLOR]);
-	fprintf(configurations, "FOOD_COLOR=%i\n", pConfig->configs[FOOD_COLOR]);
-	fprintf(configurations, "TEXT_1_COLOR=%i\n", pConfig->configs[TEXT_1_COLOR]);
-	fprintf(configurations, "TEXT_2_COLOR=%i\n", pConfig->configs[TEXT_2_COLOR]);
-	fprintf(configurations, "PLAYER_1_UP=%i\n", pConfig->configs[PLAYER_1_UP]);
-	fprintf(configurations, "PLAYER_1_LEFT=%i\n", pConfig->configs[PLAYER_1_LEFT]);
-	fprintf(configurations, "PLAYER_1_RIGHT=%i\n", pConfig->configs[PLAYER_1_RIGHT]);
-	fprintf(configurations, "PLAYER_1_DOWN=%i\n", pConfig->configs[PLAYER_1_DOWN]);
-	fprintf(configurations, "PLAYER_2_UP=%i\n", pConfig->configs[PLAYER_2_UP]);
-	fprintf(configurations, "PLAYER_2_LEFT=%i\n", pConfig->configs[PLAYER_2_LEFT]);
-	fprintf(configurations, "PLAYER_2_RIGHT=%i\n", pConfig->configs[PLAYER_2_RIGHT]);
-	fprintf(configurations, "PLAYER_2_DOWN=%i\n", pConfig->configs[PLAYER_2_DOWN]);
-	fprintf(configurations, "SCREEN_OFFSET_X=%i\n", pConfig->configs[SCREEN_OFFSET_X]);
-	fprintf(configurations, "SCREEN_OFFSET_Y=%i\n", pConfig->configs[SCREEN_OFFSET_Y]);
-	fprintf(configurations, "PLAYER_1_POINT=%i\n", pConfig->configs[PLAYER_1_POINT]);
-	fprintf(configurations, "PLAYER_2_POINT=%i\n", pConfig->configs[PLAYER_2_POINT]);
-	fprintf(configurations, "SNAKE_LENGTH=%i\n", pConfig->configs[SNAKE_LENGTH]);
+
+	for (int i = 0; i < NUM_CONFIGS; i++) {
+		fprintf(configurations, "%s=%i\n", config_names[i], pConfig->configs[i]);
+	}
 	fclose(configurations);
 }
 
@@ -179,8 +226,10 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[PLAYER_2_LEFT] = KEY_LEFT;
 	pConfig->configs[PLAYER_2_RIGHT] = KEY_RIGHT;
 	pConfig->configs[PLAYER_2_DOWN] = KEY_DOWN;
-	pConfig->configs[SCREEN_OFFSET_X] = 3;
-	pConfig->configs[SCREEN_OFFSET_Y] = 3;
+	pConfig->configs[SCREEN_OFFSET_X] = 2;
+	pConfig->configs[SCREEN_OFFSET_Y] = 2;
+	pConfig->configs[SCREEN_WIDTH] = 80;
+	pConfig->configs[SCREEN_HEIGHT] = 24;
 	pConfig->configs[PLAYER_1_POINT] = 0;
 	pConfig->configs[PLAYER_2_POINT] = 0;
 	pConfig->configs[SNAKE_LENGTH] = 10;
@@ -203,26 +252,9 @@ Config* read_config() {
 		write_config(pConfig);
 		return pConfig;
 	}
-	fscanf(configurations, "PLAYER_1_COLOR=%i\n", &pConfig->configs[PLAYER_1_COLOR]);
-	fscanf(configurations, "PLAYER_2_COLOR=%i\n", &pConfig->configs[PLAYER_2_COLOR]);
-	fscanf(configurations, "WALL_COLOR=%i\n", &pConfig->configs[WALL_COLOR]);
-	fscanf(configurations, "BACKGROUND_COLOR=%i\n", &pConfig->configs[BACKGROUND_COLOR]);
-	fscanf(configurations, "FOOD_COLOR=%i\n", &pConfig->configs[FOOD_COLOR]);
-	fscanf(configurations, "TEXT_1_COLOR=%i\n", &pConfig->configs[TEXT_1_COLOR]);
-	fscanf(configurations, "TEXT_2_COLOR=%i\n", &pConfig->configs[TEXT_2_COLOR]);
-	fscanf(configurations, "PLAYER_1_UP=%i\n", &pConfig->configs[PLAYER_1_UP]);
-	fscanf(configurations, "PLAYER_1_LEFT=%i\n", &pConfig->configs[PLAYER_1_LEFT]);
-	fscanf(configurations, "PLAYER_1_RIGHT=%i\n", &pConfig->configs[PLAYER_1_RIGHT]);
-	fscanf(configurations, "PLAYER_1_DOWN=%i\n", &pConfig->configs[PLAYER_1_DOWN]);
-	fscanf(configurations, "PLAYER_2_UP=%i\n", &pConfig->configs[PLAYER_2_UP]);
-	fscanf(configurations, "PLAYER_2_LEFT=%i\n", &pConfig->configs[PLAYER_2_LEFT]);
-	fscanf(configurations, "PLAYER_2_RIGHT=%i\n", &pConfig->configs[PLAYER_2_RIGHT]);
-	fscanf(configurations, "PLAYER_2_DOWN=%i\n", &pConfig->configs[PLAYER_2_DOWN]);
-	fscanf(configurations, "SCREEN_OFFSET_X=%i\n", &pConfig->configs[SCREEN_OFFSET_X]);
-	fscanf(configurations, "SCREEN_OFFSET_Y=%i\n", &pConfig->configs[SCREEN_OFFSET_Y]);
-	fscanf(configurations, "PLAYER_1_POINT=%i\n", &pConfig->configs[PLAYER_1_POINT]);
-	fscanf(configurations, "PLAYER_2_POINT=%i\n", &pConfig->configs[PLAYER_2_POINT]);
-	fscanf(configurations, "SNAKE_LENGTH=%i\n", &pConfig->configs[SNAKE_LENGTH]);
+	for (int i = 0; i < NUM_CONFIGS; i++) {
+		fscanf(configurations, "%*[^=]=%i\n", &pConfig->configs[i]);
+	}
 	fclose(configurations);
 	return pConfig;
 }
@@ -231,6 +263,7 @@ void delete_config(Config* pConfig) {
 	if (pConfig == NULL) {
 		return;
 	}
+	free(pConfig->config_path);
 	free(pConfig);
 	pConfig = NULL;
 }

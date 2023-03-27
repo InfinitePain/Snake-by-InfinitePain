@@ -15,14 +15,14 @@
 #include "input.h"
 #include "snake.h"
 
-#define thr_main   5
-#define mutex_win_game 6
-#define mutex_win_menu 7
 #define thr_input1 0
 #define thr_input2 1
 #define thr_menu   2
 #define thr_snake1 3
 #define thr_snake2 4
+#define thr_main   5
+#define mutex_win_game 6
+#define mutex_win_menu 7
 
 typedef struct Threads {
 	pthread_t thr[5];

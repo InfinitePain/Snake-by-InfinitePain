@@ -14,35 +14,10 @@
 #include <setjmp.h>
 #include "appdata.h"
 #include "thread.h"
+#include "terminal.h"
 
 extern jmp_buf jmp_buffer10;
 
-void delete_input(Input* pInput) {
-	if (pInput == NULL) {
-		return;
-	}
-	if (pInput->window_input != NULL) {
-		delwin(pInput->window_input);
-	}
-	
-	free(pInput);
-	pInput = NULL;
-}
-
-Input* create_input() {
-	Input* pInput = (Input*)malloc(sizeof(Input));
-	if (pInput == NULL) {
-		error_message("ERROR func create_input");
-		longjmp(jmp_buffer10, 1);
-	}
-	pInput->window_input = newwin(LINES, COLS, 0, 0);
-	if (pInput->window_input == NULL) {
-		error_message("ERROR func create_input");
-		delete_input(pInput);
-		longjmp(jmp_buffer10, 1);
-	}
-	return pInput;
-}
 
 int read_input(const int key) {
 	if (key == appArgs.pConfig->configs[PLAYER_1_UP] || key == appArgs.pConfig->configs[PLAYER_2_UP]) {
@@ -71,7 +46,7 @@ int differentiator(const int key) {
 }
 
 
-void input_driver(const int key, Input* pInput) {
+void input_driver(const int key) {
 	switch (differentiator(key))
 	{
 	case Player_1:
@@ -93,13 +68,13 @@ void input_driver(const int key, Input* pInput) {
 }
 
 void* input_thread(void* args) {
-	Input* pInput = (Input*)args;
 	int inp, player, dir;
 	int thrnum = get_thrnum(pthread_self());
 	noecho();
 	cbreak();
-	nodelay(pInput->window_input, TRUE);
-	keypad(pInput->window_input, TRUE);
+	nodelay(appWindows[thrnum], TRUE);
+	keypad(appWindows[thrnum], TRUE);
+	wgetch(appWindows[thrnum]);
 	timeout(100);
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
@@ -111,9 +86,9 @@ void* input_thread(void* args) {
 			}
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-		inp = wgetch(pInput->window_input);
+		inp = wgetch(appWindows[thrnum]);
 		if (inp != ERR) {
-			input_driver(inp, pInput);
+			input_driver(inp);
 		}
 	}
 	pthread_exit(NULL);

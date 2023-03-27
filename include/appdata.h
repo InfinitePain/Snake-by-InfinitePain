@@ -40,17 +40,8 @@ extern GameState GAME_STATE;
 extern GameMode GAME_MODE;
 
 typedef struct appData {
-	//windows
-
-	WINDOW* window_game;
-	WINDOW* window_menu;
-	
-	//game related
-
 	MenuThrArgs* pMenuThrArgs;
 	Config* pConfig;
-	Input* pInput1;
-	Input* pInput2;
 	bool animation;
 	List* pWall;
 	Snake* pSnake1;

@@ -20,7 +20,7 @@ extern jmp_buf jmp_buffer10;
 Threads GameThreads = {
 	.is_thr_init = { false, false, false, false, false, false },
 	.pause_flag = { true, true, true, true, true, true },
-	.thr_mutex = { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER},
+	.thr_mutex = { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER },
 	.pause_cond = { PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER }
 };
 
@@ -77,16 +77,16 @@ void create_thread(int thrnum) {
 	switch (thrnum) {
 	case thr_input1:
 		GameThreads.is_thr_init[thr_input1] = true;
-		if (pthread_create(&GameThreads.thr[thr_input1], NULL, &input_thread, appArgs.pInput1) != 0) {
-			error_message("ERROR: Can't create Thread\n");
+		if (pthread_create(&GameThreads.thr[thr_input1], NULL, &input_thread, NULL) != 0) {
+			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_input1] = false;
 			longjmp(jmp_buffer10, 1);
 		}
 		break;
 	case thr_input2:
 		GameThreads.is_thr_init[thr_input2] = true;
-		if (pthread_create(&GameThreads.thr[thr_input2], NULL, &input_thread, appArgs.pInput2) != 0) {
-			error_message("ERROR: Can't create Thread\n");
+		if (pthread_create(&GameThreads.thr[thr_input2], NULL, &input_thread, NULL) != 0) {
+			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_input2] = false;
 			longjmp(jmp_buffer10, 1);
 		}
@@ -94,7 +94,7 @@ void create_thread(int thrnum) {
 	case thr_menu:
 		GameThreads.is_thr_init[thr_menu] = true;
 		if (pthread_create(&GameThreads.thr[thr_menu], NULL, &menu_thread, appArgs.pMenuThrArgs) != 0) {
-			error_message("ERROR: Can't create Thread\n");
+			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_menu] = false;
 			longjmp(jmp_buffer10, 1);
 		}
@@ -102,7 +102,7 @@ void create_thread(int thrnum) {
 	case thr_snake1:
 		GameThreads.is_thr_init[thr_snake1] = true;
 		if (pthread_create(&GameThreads.thr[thr_snake1], NULL, &snake_thread, appArgs.pSnake1) != 0) {
-			error_message("ERROR: Can't create Thread\n");
+			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_snake1] = false;
 			longjmp(jmp_buffer10, 1);
 		}
@@ -110,7 +110,7 @@ void create_thread(int thrnum) {
 	case thr_snake2:
 		GameThreads.is_thr_init[thr_snake2] = true;
 		if (pthread_create(&GameThreads.thr[thr_snake2], NULL, &snake_thread, appArgs.pSnake2) != 0) {
-			error_message("ERROR: Can't create Thread\n");
+			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_snake2] = false;
 			longjmp(jmp_buffer10, 1);
 		}

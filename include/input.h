@@ -18,16 +18,9 @@
 #define Player_2 2
 #define Key_ESC  27
 
-typedef struct Input {
-	//TODO delete this struct Idea: use a sturct for all windows
-	WINDOW* window_input;
-} Input;
-
-void delete_input(Input* pInput);
-Input* create_input();
 int read_input(const int key);
 int differentiator(const int key);
-void input_driver(const int key, Input* pInput);
+void input_driver(const int key);
 void* input_thread(void* args);
 
 #endif /* INPUT_H_ */

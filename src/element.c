@@ -32,7 +32,7 @@ extern jmp_buf jmp_buffer8;
 Element* create_element(const int posx, const int posy, int purpose) {
 	Element* pElement = (Element*)malloc(sizeof(Element));
 	if (pElement == NULL) {
-		error_message("ERROR func create_element");
+		error_message("ERROR: func create_element(): malloc");
 		switch (purpose)
 		{
 		/*case 2:

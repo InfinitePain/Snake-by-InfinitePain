@@ -13,6 +13,7 @@
 #include <setjmp.h>
 #include "appdata.h"
 #include "thread.h"
+#include "terminal.h"
 
 jmp_buf jmp_buffer8;
 jmp_buf jmp_buffer9;
@@ -31,13 +32,13 @@ Snake* create_snake() {
 	Snake* pSnake = (Snake*)malloc(sizeof(Snake));
 	if (pSnake == NULL)
 	{
-		error_message("ERROR: Can't initialize Snake");
+		error_message("ERROR: func create_snake(): malloc");
 		longjmp(jmp_buffer10, 1);
 	}
 	pSnake->pos_snake = create_list();
 	if (pSnake->pos_snake == NULL)
 	{
-		error_message("ERROR: Can't initialize Snake");
+		error_message("ERROR: func create_snake(): create_list() failed");
 		longjmp(jmp_buffer10, 1);
 	}
 	pSnake->is_alive = true;
@@ -52,7 +53,7 @@ void restart_snake(Snake* pSnake) {
 	pSnake->pos_snake = create_list();
 		if (pSnake->pos_snake == NULL)
 	{
-		error_message("ERROR: Can't initialize Snake");
+		error_message("ERROR: func create_snake(): create_list() failed");
 		longjmp(jmp_buffer10, 1);
 	}
 	pSnake->is_alive = true;
@@ -83,7 +84,7 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 		}
 	}
 	else {
-		error_message("ERROR: Can't move Snake");
+		error_message("ERROR: func move_snake(): create_element() failed");
 		longjmp(jmp_buffer9, 1);
 	}
 	
@@ -128,6 +129,7 @@ void* snake_thread(void* args) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
+			pSnake->dir = key;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
@@ -136,11 +138,11 @@ void* snake_thread(void* args) {
 				key = pSnake->dir;
 			}
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appArgs.window_game);
+			list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appWindows[GAME_WIN]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			move_snake(appArgs.pConfig, key, pSnake);
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, *pSnake->color, 0, appArgs.window_game);
+			list_printer(pSnake->pos_snake, *pSnake->color, 0, appWindows[GAME_WIN]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 			usleep(100000);
 		}

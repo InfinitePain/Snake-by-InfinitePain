@@ -17,7 +17,7 @@ jmp_buf jmp_buffer3;
 List* create_list(){
 	List* pList = (List*)malloc(sizeof(List));
 	if (pList == NULL) {
-		error_message("ERROR func create_list");
+		error_message("ERROR: func create_list(): malloc");
 		return NULL;
 	}
 	pList->head = NULL;
@@ -183,7 +183,7 @@ List* copy_list(List* original) {
 	List* copy = create_list();
 	if (copy == NULL)
 	{
-		error_message("ERROR: func copy_list");
+		error_message("ERROR: func copy_list(): create_list() failed");
 		return NULL;
 	}	
 	if (setjmp(jmp_buffer3) == 0) {

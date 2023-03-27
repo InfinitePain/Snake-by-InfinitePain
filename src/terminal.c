@@ -11,8 +11,37 @@
 #include <setjmp.h>
 #include "appdata.h"
 #include "error_message.h"
+#include <string.h>
 
 extern jmp_buf jmp_buffer10;
+
+WINDOW* appWindows[4];
+
+void wmanual_box(WINDOW* win, int x, int y, int width, int height) {
+	mvwaddch(win, y, x, ACS_ULCORNER);
+	mvwaddch(win, y, x + width - 1, ACS_URCORNER);
+	mvwaddch(win, y + height - 1, x, ACS_LLCORNER);
+	mvwaddch(win, y + height - 1, x + width - 1, ACS_LRCORNER);
+
+	for (int i = 1; i < width - 1; i++) {
+		mvwaddch(win, y, x + i, ACS_HLINE);
+		mvwaddch(win, y + height - 1, x + i, ACS_HLINE);
+	}
+
+	for (int i = 1; i < height - 1; i++) {
+		mvwaddch(win, y + i, x, ACS_VLINE);
+		mvwaddch(win, y + i, x + width - 1, ACS_VLINE);
+	}
+}
+
+WINDOW* create_win(int width, int height, int start_y, int start_x) {
+	WINDOW* window = newwin(width, height, start_y, start_x);
+	if (window == NULL) {
+		error_message("ERROR: func create_win(): newwin() failed");
+		longjmp(jmp_buffer10, 1);
+	}
+	return window;
+}
 
 void init_screen() {
 	sleep(1);
@@ -46,17 +75,20 @@ void init_screen() {
 	}
 	clear();
 	curs_set(0);
+	memset(appWindows, 0, sizeof(appWindows));
 }
 
-WINDOW* create_win(WINDOW* window, int width, int height, int start_y, int start_x) {
-	window = newwin(width, height, start_y, start_x);
-	if (window == NULL) {
-		error_message("ERROR func create_win");
-		longjmp(jmp_buffer10, 1);
-	}
-	return window;
+void create_app_windows() {
+	appWindows[INPUT1_WIN] = create_win(1, 1, 0, 0);
+	appWindows[INPUT2_WIN] = create_win(1, 1, 0, 0);
+	appWindows[GAME_WIN] = create_win(appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, appArgs.pConfig->configs[SCREEN_WIDTH] - 2, 1, 1);
+	appWindows[MENU_WIN] = create_win(8, 28, (appArgs.pConfig->configs[SCREEN_HEIGHT] - 8) / 2, (appArgs.pConfig->configs[SCREEN_WIDTH] - 28) / 2);
 }
 
 void destroy_screen() {
-    endwin();
+	delwin(appWindows[INPUT1_WIN]);
+	delwin(appWindows[INPUT2_WIN]);
+	delwin(appWindows[GAME_WIN]);
+	delwin(appWindows[MENU_WIN]);
+	endwin();
 }

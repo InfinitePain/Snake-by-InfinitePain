@@ -10,8 +10,8 @@
 #define CONFIG_H_
 
 #include <stdbool.h>
-#include <limits.h>
 
+#define NUM_CONFIGS 22
 #define MOVE_UP		0
 #define MOVE_LEFT	1
 #define MOVE_RIGHT	2
@@ -39,26 +39,22 @@
 //Game Area
 #define SCREEN_OFFSET_X 15
 #define SCREEN_OFFSET_Y 16
+#define SCREEN_WIDTH 17
+#define SCREEN_HEIGHT 18
 
 //Game
-#define PLAYER_1_POINT 17
-#define PLAYER_2_POINT 18
-#define SNAKE_LENGTH 19
-
-//TODO Static width and height
-//#define GAME_AREA_WIDTH 
-//#define GAME_AREA_HEIGHT 
+#define PLAYER_1_POINT 19
+#define PLAYER_2_POINT 20
+#define SNAKE_LENGTH 21
 
 typedef struct Config {
 	bool is_configurable;
-	char config_path[PATH_MAX];
-	int configs[20];
+	char* config_path;
+	int configs[NUM_CONFIGS];
 } Config;
 
 void config_info();
-
 void get_config_path(Config* pConfig);
-
 Config* create_config();
 void write_config(Config* pConfig);
 void init_config_default(Config* config);

@@ -53,7 +53,8 @@ int main(void) {
 		destroy_screen();
 		return EXIT_FAILURE;
 	}
-
+	wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
+	refresh();
 	resume_thread(thr_menu);
 	
 	while (GAME_STATE != QUIT) {

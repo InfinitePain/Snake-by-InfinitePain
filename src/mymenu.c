@@ -13,19 +13,39 @@
 #include "appdata.h"
 #include "thread.h"
 #include "config.h"
+#include "error_message.h"
+
+#include "terminal.h"
 
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
 
 
-char* main_menu_names[4] = { "Single Player", " Multiplayer ", "  Settings   ", "    Quit     " };
-char* pause_menu_names[4] = { "  Continue   ", "    Back     ", "  Settings   ", "    Quit     " };
-char* settings[5] = { "Player 1 Color", "Player 2 Color", "Wall Color", "Background Color", "Food Color" };
+char* main_menu_names[4] = {
+	"Single Player",
+	" Multiplayer ",
+	"  Settings   ",
+	"    Quit     "
+};
+char* pause_menu_names[4] = {
+	"  Continue   ",
+	"    Back     ",
+	"  Settings   ",
+	"    Quit     "
+};
+
+char* settings[5] = {
+	"Player 1 Color",
+	"Player 2 Color",
+	"Wall Color",
+	"Background Color",
+	"Food Color"
+};
 char* config_value_names[5];
 
 
 void func_Single_Player() {
-	wclear(appArgs.window_game);
+	wclear(appWindows[GAME_WIN]);
 	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
 	resume_thread(thr_main);
 	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
@@ -34,13 +54,15 @@ void func_Single_Player() {
 	GAME_MODE = SINGLE_PLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
-	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appArgs.window_game);
+	// wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
+	// refresh();
+	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 }
 
 void func_Multiplayer() {
-	wclear(appArgs.window_game);
+	wclear(appWindows[GAME_WIN]);
 	pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
 	resume_thread(thr_main);
 	pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
@@ -49,7 +71,7 @@ void func_Multiplayer() {
 	GAME_MODE = MULTIPLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
-	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appArgs.window_game);
+	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 	appArgs.pSnake2->is_alive = true;
@@ -158,30 +180,13 @@ void get_config_value_names(char* config_value_names[]) {
 	}
 }
 
-ITEM** create_iset(char* choices1[], int n_choices) {
-	ITEM** items = (ITEM**)calloc(n_choices, sizeof(ITEM*));
-	memset(items, 0, n_choices * sizeof(ITEM*));
-	if (items == NULL) {
-		longjmp(jmp_buffer10, 1);
-	}
-	
-	for (int i = 0; i < n_choices; i++) {
-		items[i] = create_item(choices1[i], num_to_color(appArgs.pConfig->configs[i] ));
-
-	}
-	items[n_choices] = (ITEM*)NULL;
-	return items;
-}
-
 void settingsfunction() {
 	ITEM* curitem;
 	int key, value, setting;
 
-
-
 	print_menu(appArgs.pMenuThrArgs->settings_menu, "Settings");
 	while (key != KEY_F(1)) {	
-		while ((key = wgetch(appArgs.window_menu)) != '\n') {
+		while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
 			switch (key) {
 			case KEY_DOWN:
 				menu_driver(appArgs.pMenuThrArgs->settings_menu, REQ_DOWN_ITEM);
@@ -266,7 +271,7 @@ void change_config(int setting, int value) {
 int value_changer(ITEM* item, MENU* menu) {
 	int key;
 	int color_number = color_to_num(item->description.str);
-	while ((key = wgetch(appArgs.window_menu)) != '\n') {
+	while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
 		switch (key) {
 		case KEY_DOWN:
 			color_number--;
@@ -350,12 +355,13 @@ MENU* create_menu(ITEM** items) {
 
 void set_menu_attr(MENU* menu) {
 	int width, height;
-	set_menu_win(menu, appArgs.window_menu);
-	width = getmaxx(appArgs.window_menu);
-	height = getmaxy(appArgs.window_menu);
+	set_menu_win(menu, appWindows[MENU_WIN]);
+	width = getmaxx(appWindows[MENU_WIN]);
+	height = getmaxy(appWindows[MENU_WIN]);
 	WINDOW* subwindow = NULL;
-	subwindow = derwin(appArgs.window_menu, height - 4, width - 3, 3, 2);
+	subwindow = derwin(appWindows[MENU_WIN], height - 4, width - 3, 3, 2);
 	if (subwindow == NULL) {
+		error_message("ERROR: func set_menu_attr: derwin() failed");
 		longjmp(jmp_buffer10, 1);
 	}
 	set_menu_sub(menu, subwindow);
@@ -398,22 +404,21 @@ MenuThrArgs* create_menuThrArgs() {
 }
 
 void print_menu(MENU* menu, char* title) {
-	int height = getmaxy(appArgs.window_menu);
-	int width = getmaxx(appArgs.window_menu);
-    
-    box(appArgs.window_menu, 0, 0);
-    mvwaddch(appArgs.window_menu, 2, 0, ACS_LTEE);
-    mvwhline(appArgs.window_menu, 2, 1, ACS_HLINE, width);
-    mvwaddch(appArgs.window_menu, 2, width - 1, ACS_RTEE);
-	mvwprintw(appArgs.window_menu, 1, (width - strlen(title)) / 2, "%s", title);
+	int height = getmaxy(appWindows[MENU_WIN]);
+	int width = getmaxx(appWindows[MENU_WIN]);
+    box(appWindows[MENU_WIN], 0, 0);
+	mvwaddch(appWindows[MENU_WIN], 2, 0, ACS_LTEE);
+	mvwhline(appWindows[MENU_WIN], 2, 1, ACS_HLINE, width);
+	mvwaddch(appWindows[MENU_WIN], 2, width - 1, ACS_RTEE);
+	mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
 	post_menu(menu);
-	wrefresh(appArgs.window_menu);
+	wrefresh(appWindows[MENU_WIN]);
 }
 
 void erase_menu(MENU* menu) {
 	unpost_menu(menu);
-	wclear(appArgs.window_menu);
-	wrefresh(appArgs.window_menu);
+	wclear(appWindows[MENU_WIN]);
+	wrefresh(appWindows[MENU_WIN]);
 }
 
 
@@ -421,8 +426,8 @@ void* menu_thread(void* args) {
 	MenuThrArgs* pMenuThrArgs = (MenuThrArgs*)args;
 	cbreak;
 	noecho();
-	keypad(appArgs.window_menu, TRUE);
-	nodelay(appArgs.window_menu, FALSE);
+	keypad(appWindows[MENU_WIN], TRUE);
+	nodelay(appWindows[MENU_WIN], FALSE);
 	
 
 	ITEM* curItem;
@@ -455,7 +460,7 @@ void* menu_thread(void* args) {
 			break;
 		}
 		
-		while ((key = wgetch(appArgs.window_menu)) != '\n') {
+		while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
 		switch (key) {
 		case KEY_DOWN:
 			menu_driver(curMenu, REQ_DOWN_ITEM);
