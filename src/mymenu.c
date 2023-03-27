@@ -54,8 +54,6 @@ void func_Single_Player() {
 	GAME_MODE = SINGLE_PLAYER;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
-	// wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
-	// refresh();
 	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);

@@ -10,6 +10,7 @@
 #define CONFIG_H_
 
 #include <stdbool.h>
+#include <limits.h>
 
 #define NUM_CONFIGS 22
 #define MOVE_UP		0
