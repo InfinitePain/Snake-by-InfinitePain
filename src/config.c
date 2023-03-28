@@ -35,7 +35,6 @@ char* config_names[NUM_CONFIGS] = {
 	"BACKGROUND COLOR",
 	"FOOD COLOR",
 	"TEXT 1 COLOR",
-	"TEXT 2 COLOR",
 	"PLAYER 1 UP",
 	"PLAYER 1 LEFT",
 	"PLAYER 1 RIGHT",
@@ -44,13 +43,11 @@ char* config_names[NUM_CONFIGS] = {
 	"PLAYER 2 LEFT",
 	"PLAYER 2 RIGHT",
 	"PLAYER 2 DOWN",
-	"SCREEN OFFSET X",
-	"SCREEN OFFSET Y",
 	"SCREEN WIDTH",
 	"SCREEN HEIGHT",
+	"SNAKE LENGTH",
 	"PLAYER 1 POINT",
-	"PLAYER 2 POINT",
-	"SNAKE LENGTH"
+	"PLAYER 2 POINT"
 };
 
 void config_info() {
@@ -223,7 +220,6 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[BACKGROUND_COLOR] = 1;
 	pConfig->configs[FOOD_COLOR] = 7;
 	pConfig->configs[TEXT_1_COLOR] = 50;
-	pConfig->configs[TEXT_2_COLOR] = 4;
 	pConfig->configs[PLAYER_1_UP] = 119;
 	pConfig->configs[PLAYER_1_LEFT] = 97;
 	pConfig->configs[PLAYER_1_RIGHT] = 100;
@@ -232,13 +228,11 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[PLAYER_2_LEFT] = KEY_LEFT;
 	pConfig->configs[PLAYER_2_RIGHT] = KEY_RIGHT;
 	pConfig->configs[PLAYER_2_DOWN] = KEY_DOWN;
-	pConfig->configs[SCREEN_OFFSET_X] = 2;
-	pConfig->configs[SCREEN_OFFSET_Y] = 2;
 	pConfig->configs[SCREEN_WIDTH] = 80;
 	pConfig->configs[SCREEN_HEIGHT] = 24;
+	pConfig->configs[SNAKE_LENGTH] = 10;
 	pConfig->configs[PLAYER_1_POINT] = 0;
 	pConfig->configs[PLAYER_2_POINT] = 0;
-	pConfig->configs[SNAKE_LENGTH] = 10;
 }
 
 Config* read_config() {

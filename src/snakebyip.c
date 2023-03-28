@@ -2,7 +2,7 @@
  ============================================================================
  Name        : snakebyip.c
  Author      : InfinitePain
- Version     : 0.1.0
+ Version     : 0.7.0
  License     : Apache License 2.0
  Description : Snake game made by InfinitePain
  ============================================================================
