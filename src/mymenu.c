@@ -182,10 +182,16 @@ ITEM** create_item_list(char* choices1[], char* choices2[], int n_choices) {
 
 void settingsfunction() {
 	int key = -1;
-
+	int old_values[NUM_CONFIGS - 2];
+	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+		old_values[i] = appArgs.pConfig->configs[i];
+	}
+	bool save_flag = false;
 	print_menu(appArgs.pMenuThrArgs);
-	while (key != 27 || key != 34 || key != 94 || key != KEY_F(10)) {
-		while ((key = wgetch(appWindows[MENU_WIN])) != '\n' || key != 27 || key != 34 || key != 94) {
+
+	while (key != 27 && key != 34 && key != 94 && key != KEY_F(10) && key != 48) {
+		while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94 && key != KEY_F(10) && key != 48 && key != KEY_F(9) && key != 57) {
+
 			switch (key) {
 			case KEY_DOWN:
 				menu_driver(appArgs.pMenuThrArgs->settings_menu, REQ_DOWN_ITEM);
@@ -198,8 +204,17 @@ void settingsfunction() {
 		if (key == '\n') {
 			settings_value_changer(appArgs.pMenuThrArgs->settings_menu);
 		}
-		if (key == KEY_F(10) || key == KEY_F(9)) {
+		if (key == KEY_F(10) || key == 48 || key == KEY_F(9) || key == 57) {
 			write_config(appArgs.pConfig);
+			save_flag = true;
+		}
+	}
+	if (!save_flag) {
+		for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+			if (old_values[i] != appArgs.pConfig->configs[i]) {
+				appArgs.pConfig->configs[i] = old_values[i];
+				appArgs.pMenuThrArgs->settings_menu_items[i]->description.str = config_value_to_string(i);
+			}
 		}
 	}
 	erase_menu(appArgs.pMenuThrArgs);
@@ -232,7 +247,7 @@ void color_value_changer(MENU* menu) {
 			break;
 		}
 	}
-	if (key == 27) {
+	if (key == '\n') {
 		appArgs.pConfig->configs[index] = color_number;
 	}
 	else {
@@ -251,7 +266,7 @@ void int_value_changer(MENU* menu) {
 		switch (key) {
 		case KEY_DOWN:
 			value--;
-			if (value == 32) {
+			if (value == 17) {
 				value = 300;
 			}
 			item->description.str = int_to_string(value);
@@ -261,7 +276,7 @@ void int_value_changer(MENU* menu) {
 		case KEY_UP:
 			value++;
 			if (value == 301) {
-				value = 33;
+				value = 18;
 			}
 			item->description.str = int_to_string(value);
 			unpost_menu(menu);
@@ -269,7 +284,7 @@ void int_value_changer(MENU* menu) {
 			break;
 			case KEY_LEFT:
 				value -= 10;
-				if (value == 32) {
+				if (value == 17) {
 					value = 300;
 				}
 				item->description.str = int_to_string(value);
@@ -279,7 +294,7 @@ void int_value_changer(MENU* menu) {
 			case KEY_RIGHT:
 				value += 10;
 				if (value == 301) {
-					value = 33;
+					value = 18;
 				}
 				item->description.str = int_to_string(value);
 				unpost_menu(menu);
@@ -287,7 +302,7 @@ void int_value_changer(MENU* menu) {
 				break;
 		}
 	}
-	if (key == 27) {
+	if (key == '\n') {
 		appArgs.pConfig->configs[index] = value;
 	}
 	else {
@@ -301,14 +316,16 @@ void key_value_changer(MENU* menu) {
 	ITEM* item = current_item(menu);
 	int index = item_index(item);
 	int key = -1;
+	int new_value;
 	int value = appArgs.pConfig->configs[index];
 	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
-		item->description.str = key_to_string(key);
+		new_value = key;
+		item->description.str = key_to_string(new_value);
 		unpost_menu(menu);
 		post_menu(menu);
 	}
-	if (key == 27) {
-		appArgs.pConfig->configs[index] = key;
+	if (key == '\n') {
+		appArgs.pConfig->configs[index] = new_value;
 	}
 	else {
 		item->description.str = int_to_string(appArgs.pConfig->configs[index]);
@@ -343,35 +360,35 @@ void settings_value_changer(MENU* menu) {
 }
 
 const char* color_to_string(int color) {
-	static const char* color_strings[8] = { "  Black", "   Blue", "  Green", "   Cyan", "    Red", "Magenta", " Yellow", "  White" };
+	static const char* color_strings[8] = { "      Black", "       Blue", "      Green", "       Cyan", "        Red", "    Magenta", "     Yellow", "      White" };
 
 	if (color >= 1 && color <= 8) {
 		return color_strings[color - 1];
 	}
 
-	return "Unknown";
+	return "    Unknown";
 }
 
 const char* key_to_string(int key) {
-	static char key_str[8] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+	static char key_str[12] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 0};
 
 	if (isprint(key)) {
-		key_str[7] = (char)key;
+		key_str[10] = (char)key;
 		return key_str;
 	}
 
 	switch (key) {
-	case KEY_UP: return "     UP";
-	case KEY_DOWN: return "   DOWN";
-	case KEY_LEFT: return "   LEFT";
-	case KEY_RIGHT: return "  RIGHT";
-	default: return "Unknown";
+	case KEY_UP: return "         UP";
+	case KEY_DOWN: return "       DOWN";
+	case KEY_LEFT: return "       LEFT";
+	case KEY_RIGHT: return "      RIGHT";
+	default: return "    Unknown";
 	}
 }
 
 const char* int_to_string(int value) {
-	static char int_str[5] = { 0 };
-	snprintf(int_str, sizeof(int_str), "%4d", value);
+	static char int_str[12] = { 0 };
+	snprintf(int_str, sizeof(int_str), "%11d", value);
 	return int_str;
 }
 
@@ -398,7 +415,7 @@ const char* config_value_to_string(int config_index) {
 	case SNAKE_LENGTH:
 		return int_to_string(appArgs.pConfig->configs[config_index]);
 	default:
-		return "Unknown";
+		return "   Unknown";
 	}
 }
 
