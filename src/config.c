@@ -176,8 +176,8 @@ void get_config_path(Config* pConfig) {
 #ifdef __MINGW32__
 	snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", exe_path);
 #else
-	char pConfig->config_path[PATH_MAX];
-	snprintf(pConfig->config_path, PATH_MAX, "%s/configurations.txt", exe_path);
+	pConfig->config_path[path_max];
+	snprintf(pConfig->config_path, path_max, "%s/configurations.txt", exe_path);
 #endif
 	free(buffer);
 	free(exe_path);
