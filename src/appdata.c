@@ -16,9 +16,7 @@ GameState GAME_STATE = MAIN_MENU;
 GameMode GAME_MODE = NOT_SELECTED;
 
 appData appArgs = {
-	.pMenuThrArgs = NULL,
 	.pConfig = NULL,
-	.animation = true,
 	.pWall = NULL,
 	.pSnake1 = NULL,
 	.pSnake2 = NULL
@@ -27,7 +25,7 @@ appData appArgs = {
 void init_appData() {
 	appArgs.pConfig = read_config();
 	create_app_windows();
-	appArgs.pMenuThrArgs = create_menuThrArgs();
+	create_game_menus();
 	create_thread(thr_menu);
 	create_thread(thr_input1);
 	create_thread(thr_input2);

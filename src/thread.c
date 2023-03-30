@@ -93,7 +93,7 @@ void create_thread(int thrnum) {
 		break;
 	case thr_menu:
 		GameThreads.is_thr_init[thr_menu] = true;
-		if (pthread_create(&GameThreads.thr[thr_menu], NULL, &menu_thread, appArgs.pMenuThrArgs) != 0) {
+		if (pthread_create(&GameThreads.thr[thr_menu], NULL, &menu_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_menu] = false;
 			longjmp(jmp_buffer10, 1);

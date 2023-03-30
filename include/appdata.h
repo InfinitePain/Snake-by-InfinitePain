@@ -22,7 +22,7 @@
 #include "menu.h"
 
 typedef enum GameState {
-	MAIN_MENU,
+	NOT_STARTED,
 	STARTED,
 	SETTINGS,
 	QUIT,
@@ -40,9 +40,7 @@ extern GameState GAME_STATE;
 extern GameMode GAME_MODE;
 
 typedef struct appData {
-	MenuThrArgs* pMenuThrArgs;
 	Config* pConfig;
-	bool animation;
 	List* pWall;
 	Snake* pSnake1;
 	Snake* pSnake2;
