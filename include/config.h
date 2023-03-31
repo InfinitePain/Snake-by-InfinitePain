@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#define NUM_CONFIGS 19
+#define NUM_CONFIGS 18
 #define MOVE_UP		0
 #define MOVE_LEFT	1
 #define MOVE_RIGHT	2
@@ -24,26 +24,25 @@
 #define WALL_COLOR 2
 #define BACKGROUND_COLOR 3
 #define FOOD_COLOR 4
-#define TEXT_1_COLOR 5
 
 //Keyboard
-#define PLAYER_1_UP 6
-#define PLAYER_1_LEFT 7
-#define PLAYER_1_RIGHT 8
-#define PLAYER_1_DOWN 9
-#define PLAYER_2_UP 10
-#define PLAYER_2_LEFT 11
-#define PLAYER_2_RIGHT 12
-#define PLAYER_2_DOWN 13
+#define PLAYER_1_UP 5
+#define PLAYER_1_LEFT 6
+#define PLAYER_1_RIGHT 7
+#define PLAYER_1_DOWN 8
+#define PLAYER_2_UP 9
+#define PLAYER_2_LEFT 10
+#define PLAYER_2_RIGHT 11
+#define PLAYER_2_DOWN 12
 
 //Game Area
-#define SCREEN_WIDTH 14
-#define SCREEN_HEIGHT 15
+#define SCREEN_WIDTH 13
+#define SCREEN_HEIGHT 14
 
 //Game
-#define SNAKE_LENGTH 16
-#define PLAYER_1_POINT 17
-#define PLAYER_2_POINT 18
+#define SNAKE_LENGTH 15
+#define PLAYER_1_POINT 16
+#define PLAYER_2_POINT 17
 
 extern char* config_names[NUM_CONFIGS];
 

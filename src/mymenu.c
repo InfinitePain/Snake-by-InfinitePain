@@ -34,6 +34,9 @@ char* pause_menu_names[4] = {
 
 char* settings_menu_names[NUM_CONFIGS - 2];
 char* settings_menu_descriptions[NUM_CONFIGS - 2];
+bool should_save = false;
+char* title;
+bool is_spaced;
 
 void start_game(GameMode mode, bool is_new_game) {
 	wclear(appWindows[GAME_WIN]);
@@ -43,6 +46,8 @@ void start_game(GameMode mode, bool is_new_game) {
 		resume_thread(thr_main);
 		pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
+		appArgs.pSnake1->dir = MOVE_RIGHT;
+		appArgs.pSnake2->dir = MOVE_RIGHT;
 	}
 	GAME_STATE = STARTED;
 	GAME_MODE = mode;
@@ -66,13 +71,8 @@ void func_Multiplayer() {
 }
 
 void func_Settings() {
-	//TODO implement
-	setting_info();
 	GAME_STATE = SETTINGS;
-	settingsfunction();
-	GAME_STATE = MAIN_MENU;
 	resume_thread(thr_menu);
-
 }
 
 void func_Quit() {
@@ -139,7 +139,7 @@ void set_menu_attr(MENU* menu) {
 }
 
 ITEM* create_item(char* string1, char* string2) {
-	ITEM* item = create_item(string1, string2);
+	ITEM* item = new_item(string1, string2);
 	if (item == NULL) {
 		longjmp(jmp_buffer11, 1);
 	}
@@ -173,8 +173,7 @@ WINDOW* create_subwindow(WINDOW* parent, int height_offset, int width_offset, in
 	return subwindow;
 }
 
-MENU* create_game_menu(const char* choices1[], const char* choices2[], void* funcs[]) {
-	int n_choices = ARRAY_SIZE(choices1);
+MENU* create_game_menu(char* choices1[], char* choices2[], void* funcs[], int n_choices) {
 	MENU* menu = NULL;
 	ITEM** items = (ITEM**)calloc(n_choices + 1, sizeof(ITEM*));
 	if (items == NULL) {
@@ -202,47 +201,6 @@ MENU* create_game_menu(const char* choices1[], const char* choices2[], void* fun
 	}
 
 	return menu;
-}
-
-void settingsfunction() {
-	int key = -1;
-	int old_values[NUM_CONFIGS - 2];
-	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-		old_values[i] = appArgs.pConfig->configs[i];
-	}
-	bool save_flag = false;
-	ITEM** items = menu_items(game_menus[SETTINGS_MENU]);
-	print_menu(game_menus[SETTINGS_MENU]);
-
-	while (key != 27 && key != 34 && key != 94 && key != KEY_F(10) && key != 48) {
-		while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94 && key != KEY_F(10) && key != 48 && key != KEY_F(9) && key != 57) {
-
-			switch (key) {
-			case KEY_DOWN:
-				menu_driver(game_menus[SETTINGS_MENU], REQ_DOWN_ITEM);
-				break;
-			case KEY_UP:
-				menu_driver(game_menus[SETTINGS_MENU], REQ_UP_ITEM);
-				break;
-			}
-		}
-		if (key == '\n') {
-			settings_value_changer(game_menus[SETTINGS_MENU]);
-		}
-		if (key == KEY_F(10) || key == 48 || key == KEY_F(9) || key == 57) {
-			write_config(appArgs.pConfig);
-			save_flag = true;
-		}
-	}
-	if (!save_flag) {
-		for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-			if (old_values[i] != appArgs.pConfig->configs[i]) {
-				appArgs.pConfig->configs[i] = old_values[i];
-				items[i]->description.str = config_value_to_string(i);
-			}
-		}
-	}
-	erase_menu(game_menus[SETTINGS_MENU]);
 }
 
 void color_value_changer(MENU* menu) {
@@ -359,6 +317,7 @@ void key_value_changer(MENU* menu) {
 	}
 }
 
+//TODO combine with config_value_to_string ask two arg and decide the index wether menu is NULL
 void settings_value_changer(MENU* menu) {
 	switch (item_index(current_item(menu))) {
 	case PLAYER_1_COLOR:
@@ -366,7 +325,6 @@ void settings_value_changer(MENU* menu) {
 	case WALL_COLOR:
 	case BACKGROUND_COLOR:
 	case FOOD_COLOR:
-	case TEXT_1_COLOR:
 		return color_value_changer(menu);
 	case PLAYER_1_UP:
 	case PLAYER_1_LEFT:
@@ -424,7 +382,6 @@ const char* config_value_to_string(int config_index) {
 	case WALL_COLOR:
 	case BACKGROUND_COLOR:
 	case FOOD_COLOR:
-	case TEXT_1_COLOR:
 		return color_to_string(appArgs.pConfig->configs[config_index]);
 	case PLAYER_1_UP:
 	case PLAYER_1_LEFT:
@@ -466,32 +423,15 @@ void create_game_menus() {
 	{NULL, NULL, NULL, NULL}
 	};
 	get_settings_item_strings(settings_menu_names, settings_menu_descriptions);
-    char * const * menu_names[3] = {main_menu_names, pause_menu_names, settings_menu_names};
-    char * const * descriptions[3] = {NULL, NULL, settings_menu_descriptions};
-    
+    char ** menu_names[3] = {main_menu_names, pause_menu_names, settings_menu_names};
+	char** descriptions[3] = { NULL, NULL, settings_menu_descriptions };
+	int n_choices[3] = { ARRAY_SIZE(main_menu_names), ARRAY_SIZE(pause_menu_names), ARRAY_SIZE(settings_menu_names) };
     for (int i = 0; i < 3; i++) {
-        game_menus[i] = create_game_menu(menu_names[i], descriptions[i], menu_functions[i]);
+        game_menus[i] = create_game_menu(menu_names[i], descriptions[i], (void**)menu_functions[i], n_choices[i]);
     }
 }
 
 void print_menu(MENU* menu) {
-	char* title;
-	bool is_spaced;
-	switch (GAME_STATE) {
-	case MAIN_MENU:
-		title = "Snake by InfinitePain";
-		is_spaced = true;
-		break;
-	case STARTED:
-		title = "Game Paused";
-		is_spaced = true;
-		break;
-	case SETTINGS:
-		title = "Settings";
-		is_spaced = false;
-		break;
-	}
-
 	int height = getmaxy(appWindows[MENU_WIN]);
 	int width = getmaxx(appWindows[MENU_WIN]);
 	ITEM** items = menu_items(menu);
@@ -500,7 +440,6 @@ void print_menu(MENU* menu) {
 	int menu_height = count * 2;
 	int title_spacing = 2;
 	int menu_start_y = (height - menu_height) / 2 + title_spacing;
-
 
 	post_menu(menu);
 	if (is_spaced) {
@@ -553,8 +492,8 @@ void print_info_ud_arrow(int x, char* text) {
 void menu_info() {
 	erase_info();
 	print_info_enter(1, "select");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 7, ACS_VLINE);
-	print_info_ud_arrow(9, "change option");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 11, ACS_VLINE);
+	print_info_ud_arrow(13, "change option");
 	wrefresh(stdscr);
 }
 
@@ -586,20 +525,109 @@ void chg_info() {
 	wrefresh(stdscr);
 }
 
+void custom_menu_driver(MENU* menu, int key, bool* loop_flag) {
+	int n_choices = item_count(menu);
+	int index = item_index(current_item(menu));
+	void (*pfunc)() = NULL;
+	int old_values[NUM_CONFIGS - 2];
+	if (GAME_STATE == SETTINGS) {
+		for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+			old_values[i] = appArgs.pConfig->configs[i];
+		}
+	}
+	
+	switch (key) {
+	case KEY_DOWN:
+		index++;
+		if (index == n_choices) {
+			menu_driver(menu, REQ_FIRST_ITEM);
+		}
+		else {
+			menu_driver(menu, REQ_DOWN_ITEM);
+		}
+		print_menu(menu);
+		break;
+	case KEY_UP:
+		index--;
+		if (index == -1) {
+			menu_driver(menu, REQ_LAST_ITEM);
+		}
+		else {
+			menu_driver(menu, REQ_UP_ITEM);
+		}
+		print_menu(menu);
+		break;
+	case '\n':
+		if (GAME_STATE == NOT_STARTED || GAME_STATE == STARTED) {
+			*loop_flag = false;
+			erase_menu(menu);
+			pause_thread(thr_menu);
+			pfunc = item_userptr(current_item(menu));
+			pfunc();
+		}
+		else if (GAME_STATE == SETTINGS) {
+			settings_value_changer(menu);
+		}
+		break;
+	case 27:
+	case 34:
+	case 94:
+		if (GAME_STATE == SETTINGS) {
+			*loop_flag = false;
+			if (!should_save) {
+				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+					if (old_values[i] != appArgs.pConfig->configs[i]) {
+						appArgs.pConfig->configs[i] = old_values[i];
+						menu->items[i]->description.str = config_value_to_string(i);
+					}
+				}
+			}
+			erase_menu(menu);
+			if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
+				GAME_STATE = STARTED;
+			}
+			else {
+				GAME_STATE = NOT_STARTED;
+			}
+		}
+		break;
+		case KEY_F(9):
+		case 57:
+			if (GAME_STATE == SETTINGS) {
+				should_save = true;
+			}
+			break;
+		case KEY_F(10):
+		case 48:
+			if (GAME_STATE == SETTINGS) {
+				should_save = true;
+				*loop_flag = false;
+				erase_menu(menu);
+				if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
+					GAME_STATE = STARTED;
+				}
+				else {
+					GAME_STATE = NOT_STARTED;
+				}
+			}
+			break;
+	}
+}
+
 void* menu_thread(void* args) {
 	cbreak;
 	noecho();
 	keypad(appWindows[MENU_WIN], TRUE);
 	nodelay(appWindows[MENU_WIN], FALSE);
 
-
-	ITEM* curItem;
-	int key, index;
+	int key;
 	int thrnum = get_thrnum(pthread_self());
 	MENU* curMenu = game_menus[MAIN_MENU];
-
-	void(*p)();
-
+	bool loop_flag = true;
+	int old_values[NUM_CONFIGS - 2];
+	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+		old_values[i] = appArgs.pConfig->configs[i];
+	}
 
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
@@ -613,53 +641,45 @@ void* menu_thread(void* args) {
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 
 		switch (GAME_STATE) {
-		case MAIN_MENU:
+		case NOT_STARTED:
 			curMenu = game_menus[MAIN_MENU];
 			menu_info();
-			wrefresh(stdscr);
+			title = "Snake by InfinitePain";
+			is_spaced = true;
 			break;
 		case STARTED:
 			curMenu = game_menus[PAUSE_MENU];
 			menu_info();
+			title = "Game Paused";
+			is_spaced = true;
 			break;
 		case SETTINGS:
 			curMenu = game_menus[SETTINGS_MENU];
+			if (!should_save) {
+				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+					appArgs.pConfig->configs[i] = old_values[i];
+					curMenu->items[i]->description.str = config_value_to_string(i);
+				}
+			}
+			else {
+				write_config(appArgs.pConfig);
+				should_save = false;
+				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+					old_values[i] = appArgs.pConfig->configs[i];
+				}
+			}
+			title = "Settings";
+			is_spaced = false;
 			break;
 		}
+		loop_flag = true;
 
 
 		print_menu(curMenu);
-		index = 0;
-		while ((key = wgetch(appWindows[MENU_WIN])) != '\n') {
-			switch (key) {
-			case KEY_DOWN:
-				index++;
-				if (index == 4) {
-					index = 0;
-					menu_driver(curMenu, REQ_FIRST_ITEM);
-				}
-				else {
-					menu_driver(curMenu, REQ_DOWN_ITEM);
-				}
-				break;
-			case KEY_UP:
-				index--;
-				if (index == -1) {
-					index = 3;
-					menu_driver(curMenu, REQ_LAST_ITEM);
-				}
-				else {
-					menu_driver(curMenu, REQ_UP_ITEM);
-				}
-				break;
-			}
-			print_menu(curMenu);
+		while (loop_flag) {
+			key = wgetch(appWindows[MENU_WIN]);
+			custom_menu_driver(curMenu, key, &loop_flag);
 		}
-		curItem = current_item(curMenu);
-		p = item_userptr(curItem);
-		erase_menu(curMenu);
-		pause_thread(thr_menu);
-		p();
 
 	}
 	pthread_exit(NULL);

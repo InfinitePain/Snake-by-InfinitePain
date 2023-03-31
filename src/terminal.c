@@ -61,15 +61,6 @@ void init_screen() {
 	init_pair(7, COLOR_BLACK, COLOR_YELLOW);
 	init_pair(8, COLOR_BLACK, COLOR_WHITE);
 
-	init_pair(10, COLOR_BLACK, COLOR_BLACK);
-	init_pair(20, COLOR_BLUE, COLOR_BLACK);
-	init_pair(30, COLOR_GREEN, COLOR_BLACK);
-	init_pair(40, COLOR_CYAN, COLOR_BLACK);
-	init_pair(50, COLOR_RED, COLOR_BLACK);
-	init_pair(60, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(70, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(80, COLOR_WHITE, COLOR_BLACK);
-
 	if (!has_colors()) {
 		printw("Terminal does not support color output!!!!!");
 	}

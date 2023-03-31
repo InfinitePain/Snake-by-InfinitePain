@@ -43,7 +43,7 @@ void init_appData() {
 void destroy_appData() {
 	delete_config(appArgs.pConfig);
 	destroy_thread(thr_menu);
-	delete_menuThrArgs();
+	delete_menus();
 	destroy_thread(thr_input1);
 	destroy_thread(thr_input2);
 	delete_list(appArgs.pWall);

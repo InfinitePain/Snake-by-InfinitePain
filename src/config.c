@@ -34,7 +34,6 @@ char* config_names[NUM_CONFIGS] = {
 	"WALL COLOR",
 	"BACKGROUND COLOR",
 	"FOOD COLOR",
-	"TEXT 1 COLOR",
 	"PLAYER 1 UP",
 	"PLAYER 1 LEFT",
 	"PLAYER 1 RIGHT",
@@ -219,7 +218,6 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[WALL_COLOR] = 2;
 	pConfig->configs[BACKGROUND_COLOR] = 1;
 	pConfig->configs[FOOD_COLOR] = 7;
-	pConfig->configs[TEXT_1_COLOR] = 50;
 	pConfig->configs[PLAYER_1_UP] = 119;
 	pConfig->configs[PLAYER_1_LEFT] = 97;
 	pConfig->configs[PLAYER_1_RIGHT] = 100;

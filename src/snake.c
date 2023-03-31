@@ -129,7 +129,7 @@ void* snake_thread(void* args) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				pthread_exit(NULL);
 			}
-			pSnake->dir = key;
+			key = pSnake->dir;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		
