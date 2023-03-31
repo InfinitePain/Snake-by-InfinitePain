@@ -15,10 +15,29 @@
 #include "input.h"
 #include "snake.h"
 
-void pause_thread(bool* pause_flag, pthread_mutex_t* mutex, pthread_cond_t* cond);
-void resume_thread(bool* pause_flag, pthread_mutex_t* mutex, pthread_cond_t* cond);
-void destroy_thread(bool* is_thr_init, pthread_t thr, bool* pause_flag, pthread_mutex_t* mutex, pthread_cond_t* cond);
-void create_input_thread(pthread_t* thr, Input* pInput);
-void create_snake_thread(pthread_t* thr, Snake* pSnake);
+#define thr_input1 0
+#define thr_input2 1
+#define thr_menu   2
+#define thr_snake1 3
+#define thr_snake2 4
+#define thr_main   5
+#define mutex_win_game 6
+#define mutex_win_menu 7
+
+typedef struct Threads {
+	pthread_t thr[5];
+	bool is_thr_init[6];
+	bool pause_flag[6];
+	pthread_mutex_t thr_mutex[8];
+	pthread_cond_t pause_cond[6];
+} Threads;
+
+extern Threads GameThreads;
+
+int get_thrnum(pthread_t thr_id);
+void pause_thread(int thrnum);
+void resume_thread(int thrnum);
+void destroy_thread(int thrnum);
+void create_thread(int thrnum);
 
 #endif /*THREAD_H_*/

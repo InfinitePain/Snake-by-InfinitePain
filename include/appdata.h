@@ -12,44 +12,43 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#include <ncurses.h>
+#include "thread.h"
 #include "config.h"
 #include "input.h"
 #include "mymenu.h"
-#include "alphabet.h"
 #include "snake.h"
 #include "wall.h"
+#include "menu.h"
+
+typedef enum GameState {
+	NOT_STARTED,
+	STARTED,
+	SETTINGS,
+	QUIT,
+	CRITICAL_ERROR,
+} GameState;
+
+
+typedef enum GameMode {
+	NOT_SELECTED,
+	SINGLE_PLAYER,
+	MULTIPLAYER
+} GameMode;
+
+extern GameState GAME_STATE;
+extern GameMode GAME_MODE;
 
 typedef struct appData {
-	//main
-	
-	bool appState;
-	pthread_mutex_t mutex_main;
-	pthread_cond_t cond_main;
-	bool pause_flag_main;
-	
-	//threads
-	
-	pthread_t thr[5];
-	
-	//windows
-	
-	WINDOW* window_game;
-	pthread_mutex_t mutex_win_game;
-	WINDOW* window_menu;
-	
-	//game related
-	
 	Config* pConfig;
-	Input* pInput1;
-	Input* pInput2;
-	Mymenu* pMymenu;
-	Alphabet* pAlphabet;
-	bool animation;
 	List* pWall;
 	Snake* pSnake1;
 	Snake* pSnake2;
 } appData;
 
 extern appData appArgs;
+
+void init_appData();
+void destroy_appData();
 
 #endif /*APPDATA_H_*/

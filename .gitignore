@@ -65,8 +65,8 @@ Mkfile.old
 dkms.conf
 
 .vscode/*
-CMakePresets.json
-.editorconfig
+!launch.json
+editorconfig
 
 # Local History for Visual Studio Code
 .history/

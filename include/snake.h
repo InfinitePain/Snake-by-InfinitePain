@@ -18,20 +18,20 @@
 
 typedef struct Snake
 {
+	
+	bool is_alive;
 	List* pos_snake;
 	int grow;
 	int point;
 	int dir;
-	int color;
-	bool is_thr_init;
-	bool pause_flag;
-	pthread_mutex_t snake_mutex;
-	pthread_cond_t pause_cond;
+	int* color;
 } Snake;
 
 void delete_snake(Snake* pSnake);
 Snake* create_snake();
+void restart_snake(Snake* pSnake);
 void move_snake(const Config* pConfig, int direction, Snake* pSnake);
+bool is_key_reverse(int key, int dir);
 void* snake_thread(void* args);
 
 #endif /*SNAKE_H_*/

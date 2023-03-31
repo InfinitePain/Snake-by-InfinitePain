@@ -10,51 +10,52 @@
 #define CONFIG_H_
 
 #include <stdbool.h>
+#include <limits.h>
 
+#define NUM_CONFIGS 18
 #define MOVE_UP		0
 #define MOVE_LEFT	1
 #define MOVE_RIGHT	2
 #define MOVE_DOWN	3
 
+//Colors
+#define PLAYER_1_COLOR 0
+#define PLAYER_2_COLOR 1
+#define WALL_COLOR 2
+#define BACKGROUND_COLOR 3
+#define FOOD_COLOR 4
+
+//Keyboard
+#define PLAYER_1_UP 5
+#define PLAYER_1_LEFT 6
+#define PLAYER_1_RIGHT 7
+#define PLAYER_1_DOWN 8
+#define PLAYER_2_UP 9
+#define PLAYER_2_LEFT 10
+#define PLAYER_2_RIGHT 11
+#define PLAYER_2_DOWN 12
+
+//Game Area
+#define SCREEN_WIDTH 13
+#define SCREEN_HEIGHT 14
+
+//Game
+#define SNAKE_LENGTH 15
+#define PLAYER_1_POINT 16
+#define PLAYER_2_POINT 17
+
+extern char* config_names[NUM_CONFIGS];
+
 typedef struct Config {
-	bool is_config_modable;
-	//Colors
-
-	int PLAYER_1_COLOR;
-	int PLAYER_2_COLOR;
-	int WALL_COLOR;
-	int BACKGROUND_COLOR;
-	int FOOD_COLOR;
-	int TEXT_1_COLOR;
-	int TEXT_2_COLOR;
-
-	//Keyboard
-
-	int PLAYER_1_UP;
-	int PLAYER_1_LEFT;
-	int PLAYER_1_RIGHT;
-	int PLAYER_1_DOWN;
-	int PLAYER_2_UP;
-	int PLAYER_2_LEFT;
-	int PLAYER_2_RIGHT;
-	int PLAYER_2_DOWN;
-
-	//Game Area
-
-	int SCREEN_OFFSET_X;
-	int SCREEN_OFFSET_Y;
-
-	//Game
-	
-	int PLAYER_1_POINT;
-	int PLAYER_2_POINT;
-	int SNAKE_LENGTH;
+	bool is_configurable;
+	char* config_path;
+	int configs[NUM_CONFIGS];
 } Config;
 
 void config_info();
-char* get_dir_path(Config* pConfig);
+void get_config_path(Config* pConfig);
 Config* create_config();
-void write_config(const char* config_file, Config* pConfig);
+void write_config(Config* pConfig);
 void init_config_default(Config* config);
 Config* read_config();
 void delete_config(Config* pConfig);

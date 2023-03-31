@@ -14,23 +14,13 @@
 #include "config.h"
 #include <ncurses.h>
 
-typedef struct Input {
-	bool is_thr_init;
-	bool pause_flag;
-	pthread_mutex_t thr_mutex;
-	pthread_mutex_t input_mutex;
-	pthread_cond_t pause_cond;
-	int player_input;
-	WINDOW* window_input;
-} Input;
+#define Player_1 1
+#define Player_2 2
+#define Key_ESC  27
 
-void delete_input(Input* pInput);
-Input* create_input();
-void reset_input(Input* pInput);
-int read_input(const Config* pConfig, const int key);
-int differentiator(const Config* pConfig, const int key);
+int read_input(const int key);
+int differentiator(const int key);
+void input_driver(const int key);
 void* input_thread(void* args);
-bool is_up_pressed(Input* pInput);
-bool is_down_pressed(Input* pInput);
 
 #endif /* INPUT_H_ */

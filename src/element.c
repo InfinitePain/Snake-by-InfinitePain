@@ -14,7 +14,7 @@
 #include <setjmp.h>
 #include <time.h>
 
-extern jmp_buf jmp_buffer2;
+//extern jmp_buf jmp_buffer2;
 extern jmp_buf jmp_buffer3;
 extern jmp_buf jmp_buffer4;
 extern jmp_buf jmp_buffer5;
@@ -32,21 +32,21 @@ extern jmp_buf jmp_buffer8;
 Element* create_element(const int posx, const int posy, int purpose) {
 	Element* pElement = (Element*)malloc(sizeof(Element));
 	if (pElement == NULL) {
-		error_message("ERROR func create_element");
+		error_message("ERROR: func create_element(): malloc");
 		switch (purpose)
 		{
-		case 2:
+		/*case 2:
 			longjmp(jmp_buffer2, 1);
-			break;
+			break;*/
 		case 3:
 			longjmp(jmp_buffer3, 1);
 			break;
-		case 4:
+		/*case 4:
 			longjmp(jmp_buffer4, 1);
 			break;
 		case 5:
 			longjmp(jmp_buffer5, 1);
-			break;
+			break;*/
 		case 7:
 			longjmp(jmp_buffer7, 1);
 			break;
