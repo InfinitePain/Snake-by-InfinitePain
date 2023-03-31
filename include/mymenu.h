@@ -36,18 +36,19 @@ void color_value_changer(MENU* menu);
 void int_value_changer(MENU* menu);
 void key_value_changer(MENU* menu);
 void settings_value_changer(MENU* menu);
-const char* color_to_string(int color);
-const char* key_to_string(int key);
-const char* int_to_string(int value);
-const char* config_value_to_string(int config_index);
+void color_to_string(int color, int index);
+void key_to_string(int key, int index);
+void config_value_to_string(int config_index);
 void get_settings_item_strings(char** item_names, char** item_descriptions);
 void create_game_menus();
 void print_menu(MENU* menu);
 void erase_menu(MENU* menu);
 void erase_info();
+void print_info_enter(int x, char* text);
+void print_info_ud_arrow(int x, char* text);
 void menu_info();
 void setting_info();
-void chg_info();
+void chg_info(bool rl_arrow);
 void* menu_thread(void* args);
 
 #endif /*MYMENU_H_*/

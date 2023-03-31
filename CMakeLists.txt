@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Snake-by-InfinitePain VERSION 0.7.2)
+project(Snake-by-InfinitePain VERSION 0.7.3)
 
 # Set the output directory for the binary file
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/)

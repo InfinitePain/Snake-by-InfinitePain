@@ -34,7 +34,6 @@ char* pause_menu_names[4] = {
 
 char* settings_menu_names[NUM_CONFIGS - 2];
 char* settings_menu_descriptions[NUM_CONFIGS - 2];
-bool should_save = false;
 char* title;
 bool is_spaced;
 
@@ -215,7 +214,8 @@ void color_value_changer(MENU* menu) {
 			if (color_number == 0) {
 				color_number = 8;
 			}
-			item->description.str = color_to_string(color_number);
+			color_to_string(color_number, index);
+			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
 			post_menu(menu);
 			break;
@@ -224,7 +224,8 @@ void color_value_changer(MENU* menu) {
 			if (color_number == 9) {
 				color_number = 1;
 			}
-			item->description.str = color_to_string(color_number);
+			color_to_string(color_number, index);
+			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
 			post_menu(menu);
 			break;
@@ -234,7 +235,8 @@ void color_value_changer(MENU* menu) {
 		appArgs.pConfig->configs[index] = color_number;
 	}
 	else {
-		item->description.str = color_to_string(appArgs.pConfig->configs[index]);
+		color_to_string(appArgs.pConfig->configs[index], index);
+		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
 		post_menu(menu);
 	}
@@ -245,6 +247,7 @@ void int_value_changer(MENU* menu) {
 	int index = item_index(item);
 	int key = -1;
 	int value = appArgs.pConfig->configs[index];
+	char buffer[12];
 	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
 		switch (key) {
 		case KEY_DOWN:
@@ -252,7 +255,9 @@ void int_value_changer(MENU* menu) {
 			if (value == 17) {
 				value = 300;
 			}
-			item->description.str = int_to_string(value);
+			snprintf(buffer, 12, "%11d", value);
+			strcpy(settings_menu_descriptions[index], buffer);
+			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
 			post_menu(menu);
 			break;
@@ -261,7 +266,9 @@ void int_value_changer(MENU* menu) {
 			if (value == 301) {
 				value = 18;
 			}
-			item->description.str = int_to_string(value);
+			snprintf(buffer, 12, "%11d", value);
+			strcpy(settings_menu_descriptions[index], buffer);
+			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
 			post_menu(menu);
 			break;
@@ -270,7 +277,9 @@ void int_value_changer(MENU* menu) {
 				if (value == 17) {
 					value = 300;
 				}
-				item->description.str = int_to_string(value);
+				snprintf(buffer, 12, "%11d", value);
+				strcpy(settings_menu_descriptions[index], buffer);
+				item->description.str = settings_menu_descriptions[index];
 				unpost_menu(menu);
 				post_menu(menu);
 				break;
@@ -279,7 +288,9 @@ void int_value_changer(MENU* menu) {
 				if (value == 301) {
 					value = 18;
 				}
-				item->description.str = int_to_string(value);
+				snprintf(buffer, 12, "%11d", value);
+				strcpy(settings_menu_descriptions[index], buffer);
+				item->description.str = settings_menu_descriptions[index];
 				unpost_menu(menu);
 				post_menu(menu);
 				break;
@@ -289,7 +300,9 @@ void int_value_changer(MENU* menu) {
 		appArgs.pConfig->configs[index] = value;
 	}
 	else {
-		item->description.str = int_to_string(appArgs.pConfig->configs[index]);
+		snprintf(buffer, 12, "%11d", appArgs.pConfig->configs[index]);
+		strcpy(settings_menu_descriptions[index], buffer);
+		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
 		post_menu(menu);
 	}
@@ -303,7 +316,8 @@ void key_value_changer(MENU* menu) {
 	int value = appArgs.pConfig->configs[index];
 	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
 		new_value = key;
-		item->description.str = key_to_string(new_value);
+		key_to_string(new_value, index);
+		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
 		post_menu(menu);
 	}
@@ -311,13 +325,13 @@ void key_value_changer(MENU* menu) {
 		appArgs.pConfig->configs[index] = new_value;
 	}
 	else {
-		item->description.str = int_to_string(appArgs.pConfig->configs[index]);
+		key_to_string(appArgs.pConfig->configs[index], index);
+		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
 		post_menu(menu);
 	}
 }
 
-//TODO combine with config_value_to_string ask two arg and decide the index wether menu is NULL
 void settings_value_changer(MENU* menu) {
 	switch (item_index(current_item(menu))) {
 	case PLAYER_1_COLOR:
@@ -325,7 +339,9 @@ void settings_value_changer(MENU* menu) {
 	case WALL_COLOR:
 	case BACKGROUND_COLOR:
 	case FOOD_COLOR:
-		return color_value_changer(menu);
+		chg_info(false);
+		color_value_changer(menu);
+		break;
 	case PLAYER_1_UP:
 	case PLAYER_1_LEFT:
 	case PLAYER_1_RIGHT:
@@ -334,55 +350,63 @@ void settings_value_changer(MENU* menu) {
 	case PLAYER_2_LEFT:
 	case PLAYER_2_RIGHT:
 	case PLAYER_2_DOWN:
-		return key_value_changer(menu);
+		chg_info(true);
+		key_value_changer(menu);
+		break;
 	case SCREEN_WIDTH:
 	case SCREEN_HEIGHT:
 	case SNAKE_LENGTH:
-		return int_value_changer(menu);
+		chg_info(true);
+		int_value_changer(menu);
+		break;
 	}
+	setting_info();
 }
 
-const char* color_to_string(int color) {
-	static const char* color_strings[8] = { "      Black", "       Blue", "      Green", "       Cyan", "        Red", "    Magenta", "     Yellow", "      White" };
+void color_to_string(int color,int index) {
+	char color_strings[8][12] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 
 	if (color >= 1 && color <= 8) {
-		return color_strings[color - 1];
+		snprintf(settings_menu_descriptions[index], 12, "%11s", color_strings[color - 1]);
+		return;
 	}
-
-	return "    Unknown";
+	snprintf(settings_menu_descriptions[index], 12, "%11s", "Unknown");
 }
 
-const char* key_to_string(int key) {
-	static char key_str[12] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 0};
-
+void key_to_string(int key, int index) {
 	if (isprint(key)) {
-		key_str[10] = (char)key;
-		return key_str;
+		snprintf(settings_menu_descriptions[index], 12, "%11c", (char)key);
+		return;
 	}
 
 	switch (key) {
-	case KEY_UP: return "         UP";
-	case KEY_DOWN: return "       DOWN";
-	case KEY_LEFT: return "       LEFT";
-	case KEY_RIGHT: return "      RIGHT";
-	default: return "    Unknown";
+	case KEY_UP:
+		snprintf(settings_menu_descriptions[index], 12, "%11s", "UP");
+		break;
+	case KEY_DOWN:
+		snprintf(settings_menu_descriptions[index], 12, "%11s", "DOWN");
+		break;
+	case KEY_LEFT:
+		snprintf(settings_menu_descriptions[index], 12, "%11s", "LEFT");
+		break;
+	case KEY_RIGHT:
+		snprintf(settings_menu_descriptions[index], 12, "%11s", "RIGHT");
+		break;
+	default:
+		snprintf(settings_menu_descriptions[index], 12, "%11s", "Unknown");
+		break;
 	}
 }
 
-const char* int_to_string(int value) {
-	static char int_str[12] = { 0 };
-	snprintf(int_str, sizeof(int_str), "%11d", value);
-	return int_str;
-}
-
-const char* config_value_to_string(int config_index) {
+void config_value_to_string(int config_index) {
 	switch (config_index) {
 	case PLAYER_1_COLOR:
 	case PLAYER_2_COLOR:
 	case WALL_COLOR:
 	case BACKGROUND_COLOR:
 	case FOOD_COLOR:
-		return color_to_string(appArgs.pConfig->configs[config_index]);
+		color_to_string(appArgs.pConfig->configs[config_index], config_index);
+		break;
 	case PLAYER_1_UP:
 	case PLAYER_1_LEFT:
 	case PLAYER_1_RIGHT:
@@ -391,13 +415,16 @@ const char* config_value_to_string(int config_index) {
 	case PLAYER_2_LEFT:
 	case PLAYER_2_RIGHT:
 	case PLAYER_2_DOWN:
-		return key_to_string(appArgs.pConfig->configs[config_index]);
+		key_to_string(appArgs.pConfig->configs[config_index], config_index);
+		break;
 	case SCREEN_WIDTH:
 	case SCREEN_HEIGHT:
 	case SNAKE_LENGTH:
-		return int_to_string(appArgs.pConfig->configs[config_index]);
+		snprintf(settings_menu_descriptions[config_index], 12, "%11d", appArgs.pConfig->configs[config_index]);
+		break;
 	default:
-		return "   Unknown";
+		snprintf(settings_menu_descriptions[config_index], 12, "Unknown", 12);
+		break;
 	}
 }
 
@@ -408,11 +435,16 @@ void get_settings_item_strings(char** item_names, char** item_descriptions) {
 	}
 	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
 		item_names[i] = strdup(config_names[i]);
-		item_descriptions[i] = strdup(config_value_to_string(i));
-		if (item_names[i] == NULL || item_descriptions[i] == NULL) {
+		if (item_names[i] == NULL) {
 			error_message("ERROR: func get_settings_item_strings(): strdup() failed");
 			longjmp(jmp_buffer10, 1);
 		}
+		item_descriptions[i] = (char*)calloc(12, sizeof(char));
+		if (item_descriptions[i] == NULL) {
+			error_message("ERROR: func get_settings_item_strings(): calloc() failed");
+			longjmp(jmp_buffer10, 1);
+		}
+		config_value_to_string(i);
     }
 }
 
@@ -476,8 +508,8 @@ void erase_info() {
 }
 
 void print_info_enter(int x, char* text) {
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x, ACS_LARROW);
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+1, ACS_LRCORNER);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+1, ACS_LARROW);
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+2, ACS_LRCORNER);
 	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, text);
 }
 
@@ -488,54 +520,58 @@ void print_info_ud_arrow(int x, char* text) {
 	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, text);
 }
 
-
 void menu_info() {
 	erase_info();
 	print_info_enter(1, "select");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 11, ACS_VLINE);
-	print_info_ud_arrow(13, "change option");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 12, ACS_VLINE);
+	print_info_ud_arrow(14, "change option");
 	wrefresh(stdscr);
 }
 
 void setting_info() {
 	erase_info();
 	print_info_enter(1, "select");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 7, ACS_VLINE);
-	print_info_ud_arrow(9, "change option");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 19, ACS_VLINE);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 21, "esc back");
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 30, "F9 save");
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 38, "F10 save & exit");
-	wrefresh(stdscr);
-	wrefresh(stdscr);
-}
-
-void chg_info() {
-	erase_info();
-	print_info_enter(1, "confirm");
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 12, ACS_VLINE);
-	print_info_ud_arrow(14, "change value");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 25, ACS_VLINE);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 27, "esc cancel");
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 39, ACS_VLINE);
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 40, ACS_LARROW);
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 41, '/');
-	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 42, ACS_RARROW);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 44, "+/-10");
+	print_info_ud_arrow(14, "change option");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 32, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 34, "esc back");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 43, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 45, "F9 save");
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 53, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, 55, "F10 save & exit");
+	wrefresh(stdscr);
 	wrefresh(stdscr);
 }
 
-void custom_menu_driver(MENU* menu, int key, bool* loop_flag) {
+void chg_info(bool rl_arrow) {
+	int x = 1;
+	erase_info();
+	print_info_enter(x, "confirm");
+	x += 12;
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x, ACS_VLINE);
+	x += 2;
+	if (rl_arrow) {
+		print_info_ud_arrow(x, "+/- 1");
+		mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 10, ACS_VLINE);
+		mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 12, ACS_LARROW);
+		mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 13, '/');
+		mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 14, ACS_RARROW);
+		mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 16, "+/- 10");
+		x += 23;
+	}
+	else {
+		print_info_ud_arrow(x, "change value");
+		x += 17;
+	}
+	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x, ACS_VLINE);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x + 2, "esc cancel");
+	wrefresh(stdscr);
+}
+
+void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, bool* should_save) {
 	int n_choices = item_count(menu);
 	int index = item_index(current_item(menu));
 	void (*pfunc)() = NULL;
-	int old_values[NUM_CONFIGS - 2];
-	if (GAME_STATE == SETTINGS) {
-		for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-			old_values[i] = appArgs.pConfig->configs[i];
-		}
-	}
-	
 	switch (key) {
 	case KEY_DOWN:
 		index++;
@@ -574,15 +610,17 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag) {
 	case 94:
 		if (GAME_STATE == SETTINGS) {
 			*loop_flag = false;
-			if (!should_save) {
+			erase_menu(menu);
+			if (*should_save) {
+				*should_save = false;
+			}
+			else {
 				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-					if (old_values[i] != appArgs.pConfig->configs[i]) {
-						appArgs.pConfig->configs[i] = old_values[i];
-						menu->items[i]->description.str = config_value_to_string(i);
-					}
+					appArgs.pConfig->configs[i] = old_values[i];
+					config_value_to_string(i);
+					menu->items[i]->description.str = settings_menu_descriptions[i];
 				}
 			}
-			erase_menu(menu);
 			if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
 				GAME_STATE = STARTED;
 			}
@@ -591,26 +629,34 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag) {
 			}
 		}
 		break;
-		case KEY_F(9):
-		case 57:
-			if (GAME_STATE == SETTINGS) {
-				should_save = true;
+	case KEY_F(9):
+	case 57:
+		if (GAME_STATE == SETTINGS) {
+			*should_save = true;
+			write_config(appArgs.pConfig);
+			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+				old_values[i] = appArgs.pConfig->configs[i];
 			}
-			break;
-		case KEY_F(10):
-		case 48:
-			if (GAME_STATE == SETTINGS) {
-				should_save = true;
-				*loop_flag = false;
-				erase_menu(menu);
-				if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
-					GAME_STATE = STARTED;
-				}
-				else {
-					GAME_STATE = NOT_STARTED;
-				}
+		}
+		break;
+	case KEY_F(10):
+	case 48:
+		if (GAME_STATE == SETTINGS) {
+			*loop_flag = false;
+			erase_menu(menu);
+			write_config(appArgs.pConfig);
+			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+				old_values[i] = appArgs.pConfig->configs[i];
 			}
-			break;
+			*should_save = false;
+			if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
+				GAME_STATE = STARTED;
+			}
+			else {
+				GAME_STATE = NOT_STARTED;
+			}
+		}
+		break;
 	}
 }
 
@@ -624,6 +670,7 @@ void* menu_thread(void* args) {
 	int thrnum = get_thrnum(pthread_self());
 	MENU* curMenu = game_menus[MAIN_MENU];
 	bool loop_flag = true;
+	bool should_save = false;
 	int old_values[NUM_CONFIGS - 2];
 	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
 		old_values[i] = appArgs.pConfig->configs[i];
@@ -655,19 +702,7 @@ void* menu_thread(void* args) {
 			break;
 		case SETTINGS:
 			curMenu = game_menus[SETTINGS_MENU];
-			if (!should_save) {
-				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-					appArgs.pConfig->configs[i] = old_values[i];
-					curMenu->items[i]->description.str = config_value_to_string(i);
-				}
-			}
-			else {
-				write_config(appArgs.pConfig);
-				should_save = false;
-				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
-					old_values[i] = appArgs.pConfig->configs[i];
-				}
-			}
+			setting_info();
 			title = "Settings";
 			is_spaced = false;
 			break;
@@ -678,7 +713,7 @@ void* menu_thread(void* args) {
 		print_menu(curMenu);
 		while (loop_flag) {
 			key = wgetch(appWindows[MENU_WIN]);
-			custom_menu_driver(curMenu, key, &loop_flag);
+			custom_menu_driver(curMenu, key, &loop_flag, old_values, &should_save);
 		}
 
 	}
