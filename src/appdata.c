@@ -10,7 +10,9 @@
 #include "appdata.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "terminal.h"
+#include "food.h"
 
 GameState GAME_STATE = MAIN_MENU;
 GameMode GAME_MODE = NOT_SELECTED;
@@ -19,7 +21,10 @@ appData appArgs = {
 	.pConfig = NULL,
 	.pWall = NULL,
 	.pSnake1 = NULL,
-	.pSnake2 = NULL
+	.pSnake2 = NULL,
+	.pFood_Main = NULL,
+	.pFood_Multiplayer = NULL,
+	.pFood_Single_Player = NULL,
 };
 
 void init_appData() {
@@ -38,6 +43,7 @@ void init_appData() {
 	create_thread(thr_snake2);
 	appArgs.pSnake2->dir = MOVE_RIGHT;
 	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
+	init_foods();
 }
 
 void destroy_appData() {
@@ -51,5 +57,7 @@ void destroy_appData() {
 	delete_snake(appArgs.pSnake1);
 	destroy_thread(thr_snake2);
 	delete_snake(appArgs.pSnake2);
+	//TODO delete food thread first
+	delete_foods();
 	destroy_thread(thr_main);
 }

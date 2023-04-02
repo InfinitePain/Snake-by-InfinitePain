@@ -14,20 +14,17 @@
 #include <setjmp.h>
 #include <time.h>
 
-//extern jmp_buf jmp_buffer2;
 extern jmp_buf jmp_buffer3;
-extern jmp_buf jmp_buffer4;
-extern jmp_buf jmp_buffer5;
 extern jmp_buf jmp_buffer7;
 extern jmp_buf jmp_buffer8;
+extern jmp_buf jmp_buffer12;
+
 
 /*
-2 for letter_create
 3 for list_copy
-4 for create_mymenu_options
-5 for create_mymenu_highlight
 7 for the wall functions
 8 for move_snake
+12 for init_food
 */
 Element* create_element(const int posx, const int posy, int purpose) {
 	Element* pElement = (Element*)malloc(sizeof(Element));
@@ -35,23 +32,18 @@ Element* create_element(const int posx, const int posy, int purpose) {
 		error_message("ERROR: func create_element(): malloc");
 		switch (purpose)
 		{
-		/*case 2:
-			longjmp(jmp_buffer2, 1);
-			break;*/
 		case 3:
 			longjmp(jmp_buffer3, 1);
 			break;
-		/*case 4:
-			longjmp(jmp_buffer4, 1);
-			break;
-		case 5:
-			longjmp(jmp_buffer5, 1);
-			break;*/
 		case 7:
 			longjmp(jmp_buffer7, 1);
 			break;
 		case 8:
 			longjmp(jmp_buffer8, 1);
+			break;
+		case 12:
+			longjmp(jmp_buffer12, 1);
+			break;
 		default:
 			break;
 		}
@@ -61,7 +53,6 @@ Element* create_element(const int posx, const int posy, int purpose) {
 	pElement->pos.posy = posy;
 	pElement->index = -1;
 	pElement->next = NULL;
-	pElement->prev = NULL;
 	return pElement;
 }
 

@@ -45,8 +45,11 @@ char* config_names[NUM_CONFIGS] = {
 	"SCREEN WIDTH",
 	"SCREEN HEIGHT",
 	"SNAKE LENGTH",
+	"FOOD AMOUNT SINGLE PLAYER",
+	"FOOD AMOUNT MULTIPLAYER",
 	"PLAYER 1 POINT",
 	"PLAYER 2 POINT"
+	//TODO if you add more configs, adjust this
 };
 
 void config_info() {
@@ -229,8 +232,11 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[SCREEN_WIDTH] = 80;
 	pConfig->configs[SCREEN_HEIGHT] = 24;
 	pConfig->configs[SNAKE_LENGTH] = 10;
+	pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] = 1;
+	pConfig->configs[FOOD_AMOUNT_MULTIPLAYER] = 2;
 	pConfig->configs[PLAYER_1_POINT] = 0;
 	pConfig->configs[PLAYER_2_POINT] = 0;
+	//TODO if you add more configs, adjust this
 }
 
 Config* read_config() {

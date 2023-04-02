@@ -2,7 +2,7 @@
  ============================================================================
  Name        : snakebyip.c
  Author      : InfinitePain
- Version     : 0.7.3
+ Version     : 0.8.0
  License     : Apache License 2.0
  Description : Snake game made by InfinitePain
  ============================================================================
@@ -25,16 +25,12 @@
 
  /*
 jmp_buffer1 for create_alphabet
-jmp_buffer2  for create_letter_
-jmp_buffer3  for copy_list
-jmp_buffer4  for create_mymenu_options
-jmp_buffer5  for create_mymenu_highlight
-jmp_buffer6  for mymenu
 jmp_buffer7  for init_wall
 jmp_buffer8  for move_snake
 jmp_buffer9  for single_player
 jmp_buffer10 for main
 jmp_buffer11 for create_item_list
+jmp_buffer12 for init_food
  */
 
 jmp_buf jmp_buffer10;

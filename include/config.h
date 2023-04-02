@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#define NUM_CONFIGS 18
+#define NUM_CONFIGS 20
 #define MOVE_UP		0
 #define MOVE_LEFT	1
 #define MOVE_RIGHT	2
@@ -41,8 +41,11 @@
 
 //Game
 #define SNAKE_LENGTH 15
-#define PLAYER_1_POINT 16
-#define PLAYER_2_POINT 17
+#define FOOD_AMOUNT_SINGLE_PLAYER 16
+#define FOOD_AMOUNT_MULTIPLAYER 17
+//TODO add game speed "#define GAME_SPEED x"
+#define PLAYER_1_POINT 18
+#define PLAYER_2_POINT 19
 
 extern char* config_names[NUM_CONFIGS];
 

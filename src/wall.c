@@ -33,14 +33,14 @@ List* create_wall()
 	{
 		for (int x = x_start; x < x_end; x++)
 		{
-			add_element_to_tail(pList, create_element(x, y_start, 7));
-			add_element_to_tail(pList, create_element(x, y_end - 1, 7));
+			add_element_to_head(pList, create_element(x, y_start, 7));
+			add_element_to_head(pList, create_element(x, y_end - 1, 7));
 
 		}
 		for (int y = y_start; y < y_end; y++)
 		{
-			add_element_to_tail(pList, create_element(x_start, y, 7));
-			add_element_to_tail(pList, create_element(x_end - 1, y, 7));
+			add_element_to_head(pList, create_element(x_start, y, 7));
+			add_element_to_head(pList, create_element(x_end - 1, y, 7));
 		}
 	}
 	else

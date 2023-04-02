@@ -15,7 +15,6 @@
 typedef struct Element {
 	int index;
 	Position pos;
-	struct Element* prev;
 	struct Element* next;
 } Element;
 

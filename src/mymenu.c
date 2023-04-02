@@ -350,16 +350,19 @@ void settings_value_changer(MENU* menu) {
 	case PLAYER_2_LEFT:
 	case PLAYER_2_RIGHT:
 	case PLAYER_2_DOWN:
-		chg_info(true);
+		chg_info(false);
 		key_value_changer(menu);
 		break;
 	case SCREEN_WIDTH:
 	case SCREEN_HEIGHT:
 	case SNAKE_LENGTH:
+	case FOOD_AMOUNT_SINGLE_PLAYER:
+	case FOOD_AMOUNT_MULTIPLAYER:
 		chg_info(true);
 		int_value_changer(menu);
 		break;
 	}
+	//TODO if you add more configs, adjust this
 	setting_info();
 }
 
@@ -420,12 +423,15 @@ void config_value_to_string(int config_index) {
 	case SCREEN_WIDTH:
 	case SCREEN_HEIGHT:
 	case SNAKE_LENGTH:
+	case FOOD_AMOUNT_SINGLE_PLAYER:
+	case FOOD_AMOUNT_MULTIPLAYER:
 		snprintf(settings_menu_descriptions[config_index], 12, "%11d", appArgs.pConfig->configs[config_index]);
 		break;
 	default:
 		snprintf(settings_menu_descriptions[config_index], 12, "Unknown", 12);
 		break;
 	}
+	//TODO if you add more configs, adjust this
 }
 
 void get_settings_item_strings(char** item_names, char** item_descriptions) {

@@ -44,6 +44,9 @@ typedef struct appData {
 	List* pWall;
 	Snake* pSnake1;
 	Snake* pSnake2;
+	List* pFood_Main;
+	List* pFood_Multiplayer;
+	List* pFood_Single_Player;
 } appData;
 
 extern appData appArgs;

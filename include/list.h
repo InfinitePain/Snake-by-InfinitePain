@@ -17,20 +17,15 @@
 
 typedef struct List {
 	Element* head;
-	Element* tail;
 	int size;
 } List;
 
 List* create_list();
 void add_element_to_head(List* pList, Element* pElement);
-void add_element_to_tail(List* pList, Element* pElement);
-bool is_element_in_list(Element* pCheck, List* pList);
-Element* find_element_at_index(List* pList, const int index);
-void delete_first_element(List* pList);
+Element* get_element_at_index(List* pList, const int index);
 void delete_last_element(List* pList);
 void delete_list(List* pList);
 void list_printer(List* pList, const int color, const int time, WINDOW* window);
-void update_position(List* pList, const int posx, const int posy);
-List* copy_list(List* original);
+void make_list_from(List* source_list, List* target_list, const int size);
 
 #endif /* LIST_H_ */
