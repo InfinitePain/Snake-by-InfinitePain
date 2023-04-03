@@ -41,6 +41,7 @@ void key_to_string(int key, int index);
 void config_value_to_string(int config_index);
 void get_settings_item_strings(char** item_names, char** item_descriptions);
 void create_game_menus();
+void print_title(int width);
 void print_menu(MENU* menu);
 void erase_menu(MENU* menu);
 void erase_info();

@@ -47,7 +47,7 @@ void start_game(GameMode mode, bool is_new_game) {
 		pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 		appArgs.pSnake1->dir = MOVE_RIGHT;
-		appArgs.pSnake2->dir = MOVE_RIGHT;
+		appArgs.pSnake2->dir = MOVE_LEFT;
 		reset_food(appArgs.pFood_Main);
 	}
 	GAME_STATE = STARTED;
@@ -77,6 +77,7 @@ void func_Multiplayer() {
 
 void func_Settings() {
 	GAME_STATE = SETTINGS;
+	//TODO back->settings turns back to game menu
 	resume_thread(thr_menu);
 }
 
@@ -94,7 +95,7 @@ void func_Continue() {
 }
 
 void func_Back() {
-	GAME_STATE = MAIN_MENU;
+	GAME_MODE = RESTARTING;
 	resume_thread(thr_menu);
 }
 
@@ -253,7 +254,7 @@ void int_value_changer(MENU* menu) {
 	int index = item_index(item);
 	int key = -1;
 	int value = appArgs.pConfig->configs[index];
-	char buffer[12];
+	char buffer[10];
 	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
 		switch (key) {
 		case KEY_DOWN:
@@ -261,7 +262,7 @@ void int_value_changer(MENU* menu) {
 			if (value == 17) {
 				value = 300;
 			}
-			snprintf(buffer, 12, "%11d", value);
+			snprintf(buffer, 10, "%9d", value);
 			strcpy(settings_menu_descriptions[index], buffer);
 			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
@@ -272,7 +273,7 @@ void int_value_changer(MENU* menu) {
 			if (value == 301) {
 				value = 18;
 			}
-			snprintf(buffer, 12, "%11d", value);
+			snprintf(buffer, 10, "%9d", value);
 			strcpy(settings_menu_descriptions[index], buffer);
 			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
@@ -283,7 +284,7 @@ void int_value_changer(MENU* menu) {
 				if (value == 17) {
 					value = 300;
 				}
-				snprintf(buffer, 12, "%11d", value);
+				snprintf(buffer, 10, "%9d", value);
 				strcpy(settings_menu_descriptions[index], buffer);
 				item->description.str = settings_menu_descriptions[index];
 				unpost_menu(menu);
@@ -294,7 +295,7 @@ void int_value_changer(MENU* menu) {
 				if (value == 301) {
 					value = 18;
 				}
-				snprintf(buffer, 12, "%11d", value);
+				snprintf(buffer, 10, "%9d", value);
 				strcpy(settings_menu_descriptions[index], buffer);
 				item->description.str = settings_menu_descriptions[index];
 				unpost_menu(menu);
@@ -306,7 +307,7 @@ void int_value_changer(MENU* menu) {
 		appArgs.pConfig->configs[index] = value;
 	}
 	else {
-		snprintf(buffer, 12, "%11d", appArgs.pConfig->configs[index]);
+		snprintf(buffer, 10, "%9d", appArgs.pConfig->configs[index]);
 		strcpy(settings_menu_descriptions[index], buffer);
 		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
@@ -376,33 +377,33 @@ void color_to_string(int color,int index) {
 	char color_strings[8][12] = { "Black", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White" };
 
 	if (color >= 1 && color <= 8) {
-		snprintf(settings_menu_descriptions[index], 12, "%11s", color_strings[color - 1]);
+		snprintf(settings_menu_descriptions[index], 10, "%9s", color_strings[color - 1]);
 		return;
 	}
-	snprintf(settings_menu_descriptions[index], 12, "%11s", "Unknown");
+	snprintf(settings_menu_descriptions[index], 10, "%9s", "Unknown");
 }
 
 void key_to_string(int key, int index) {
 	if (isprint(key)) {
-		snprintf(settings_menu_descriptions[index], 12, "%11c", (char)key);
+		snprintf(settings_menu_descriptions[index], 10, "%9c", (char)key);
 		return;
 	}
 
 	switch (key) {
 	case KEY_UP:
-		snprintf(settings_menu_descriptions[index], 12, "%11s", "UP");
+		snprintf(settings_menu_descriptions[index], 10, "%9s", "UP");
 		break;
 	case KEY_DOWN:
-		snprintf(settings_menu_descriptions[index], 12, "%11s", "DOWN");
+		snprintf(settings_menu_descriptions[index], 10, "%9s", "DOWN");
 		break;
 	case KEY_LEFT:
-		snprintf(settings_menu_descriptions[index], 12, "%11s", "LEFT");
+		snprintf(settings_menu_descriptions[index], 10, "%9s", "LEFT");
 		break;
 	case KEY_RIGHT:
-		snprintf(settings_menu_descriptions[index], 12, "%11s", "RIGHT");
+		snprintf(settings_menu_descriptions[index], 10, "%9s", "RIGHT");
 		break;
 	default:
-		snprintf(settings_menu_descriptions[index], 12, "%11s", "Unknown");
+		snprintf(settings_menu_descriptions[index], 10, "%9s", "Unknown");
 		break;
 	}
 }
@@ -431,10 +432,10 @@ void config_value_to_string(int config_index) {
 	case SNAKE_LENGTH:
 	case FOOD_AMOUNT_SINGLE_PLAYER:
 	case FOOD_AMOUNT_MULTIPLAYER:
-		snprintf(settings_menu_descriptions[config_index], 12, "%11d", appArgs.pConfig->configs[config_index]);
+		snprintf(settings_menu_descriptions[config_index], 10, "%9d", appArgs.pConfig->configs[config_index]);
 		break;
 	default:
-		snprintf(settings_menu_descriptions[config_index], 12, "Unknown", 12);
+		snprintf(settings_menu_descriptions[config_index], 10, "%9s", "Unknown");
 		break;
 	}
 	//TODO if you add more configs, adjust this
@@ -475,6 +476,26 @@ void create_game_menus() {
     }
 }
 
+void print_title(int width) {
+	if ((title == "Game Over" || title == "Player 1 Wins!" || title == "Player 2 Wins!") && GAME_MODE == MULTIPLAYER) {
+		if (appArgs.pSnake1->is_alive) {
+			title = "Player 1 Wins!";
+			wattron(appWindows[MENU_WIN], COLOR_PAIR(appArgs.pConfig->configs[PLAYER_1_COLOR] * 10));
+			mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
+			wattroff(appWindows[MENU_WIN], COLOR_PAIR(appArgs.pConfig->configs[PLAYER_1_COLOR] * 10));
+		}
+		else {
+			title = "Player 2 Wins!";
+			wattron(appWindows[MENU_WIN], COLOR_PAIR(appArgs.pConfig->configs[PLAYER_2_COLOR] * 10));
+			mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
+			wattroff(appWindows[MENU_WIN], COLOR_PAIR(appArgs.pConfig->configs[PLAYER_2_COLOR] * 10));
+		}
+	}
+	else {
+		mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
+	}
+}
+
 void print_menu(MENU* menu) {
 	int height = getmaxy(appWindows[MENU_WIN]);
 	int width = getmaxx(appWindows[MENU_WIN]);
@@ -502,7 +523,7 @@ void print_menu(MENU* menu) {
 	mvwaddch(appWindows[MENU_WIN], title_spacing, 0, ACS_LTEE);
 	mvwhline(appWindows[MENU_WIN], title_spacing, 1, ACS_HLINE, width - 2);
 	mvwaddch(appWindows[MENU_WIN], title_spacing, width - 1, ACS_RTEE);
-	mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
+	print_title(width);
 	wrefresh(appWindows[MENU_WIN]);
 }
 
@@ -633,11 +654,11 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 					menu->items[i]->description.str = settings_menu_descriptions[i];
 				}
 			}
-			if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
-				GAME_STATE = STARTED;
+			if (GAME_MODE == RESTARTING || GAME_MODE == NOT_SELECTED || GAME_STATE == GAME_OVER) {
+					GAME_STATE = NOT_STARTED;
 			}
 			else {
-				GAME_STATE = NOT_STARTED;
+				GAME_STATE = STARTED;
 			}
 		}
 		break;
@@ -694,9 +715,15 @@ void* menu_thread(void* args) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
+
 		if (GAME_STATE == QUIT) {
 			break;
 		}
+		pthread_mutex_lock(&mutex_waiting_thread_count);
+		while (waiting_thread_count < NUM_THREADS - 1) {
+			pthread_cond_wait(&cond_waiting_thread_count, &mutex_waiting_thread_count);
+		}
+		pthread_mutex_unlock(&mutex_waiting_thread_count);
 
 		switch (GAME_STATE) {
 		case NOT_STARTED:
@@ -726,6 +753,10 @@ void* menu_thread(void* args) {
 			break;
 		}
 		loop_flag = true;
+
+		if (GAME_MODE == RESTARTING) {
+			GAME_STATE = NOT_STARTED;
+		}
 
 
 		print_menu(curMenu);

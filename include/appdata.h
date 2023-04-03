@@ -33,6 +33,7 @@ typedef enum GameState {
 
 typedef enum GameMode {
 	NOT_SELECTED,
+	RESTARTING,
 	SINGLE_PLAYER,
 	MULTIPLAYER
 } GameMode;

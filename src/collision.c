@@ -66,6 +66,7 @@ void handle_food_collision(Element* collided_food, Snake* pSnake) {
 
 void game_over() {
 	GAME_STATE = GAME_OVER;
+	GAME_MODE = RESTARTING;
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
 	pause_thread(thr_snake1);
@@ -79,7 +80,9 @@ void* collision_thread(void* arg) {
 	while (GameThreads.is_thr_init[thr_collision]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_collision]);
 		while (GameThreads.pause_flag[thr_collision]) {
+			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thr_collision], &GameThreads.thr_mutex[thr_collision]);
+			decrement_waiting_thread_count();
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_collision]);
 		if (GAME_STATE == QUIT) {
@@ -89,6 +92,7 @@ void* collision_thread(void* arg) {
 		switch (GAME_MODE) {
 		case SINGLE_PLAYER:
 			if (is_snake_collided(appArgs.pSnake1) || is_snake_collided_with_wall(appArgs.pSnake1)) {
+				appArgs.pSnake1->is_alive = false;
 				game_over();
 				break;
 			}
@@ -100,18 +104,22 @@ void* collision_thread(void* arg) {
 			break;
 		case MULTIPLAYER:
 			if (is_snake_collided(appArgs.pSnake1) || is_snake_collided_with_wall(appArgs.pSnake1)) {
+				appArgs.pSnake1->is_alive = false;
 				game_over();
 				break;
 			}
 			if (is_snake_collided(appArgs.pSnake2) || is_snake_collided_with_wall(appArgs.pSnake2)) {
+				appArgs.pSnake2->is_alive = false;
 				game_over();
 				break;
 			}
 			if (is_snake_collided_with_snake(appArgs.pSnake1, appArgs.pSnake2)) {
+				appArgs.pSnake1->is_alive = false;
 				game_over();
 				break;
 			}
 			if (is_snake_collided_with_snake(appArgs.pSnake2, appArgs.pSnake1)) {
+				appArgs.pSnake2->is_alive = false;
 				game_over();
 				break;
 			}

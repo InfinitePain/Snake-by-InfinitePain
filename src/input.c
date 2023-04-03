@@ -75,12 +75,14 @@ void* input_thread(void* args) {
 	cbreak();
 	nodelay(appWindows[thrnum], TRUE);
 	keypad(appWindows[thrnum], TRUE);
-	wgetch(appWindows[thrnum]);
+	// wgetch(appWindows[thrnum]);
 	timeout(100);
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
+			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
+			decrement_waiting_thread_count();
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		if (GAME_STATE == QUIT) {

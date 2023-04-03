@@ -19,6 +19,10 @@
 
 extern jmp_buf jmp_buffer10;
 
+int waiting_thread_count = 0;
+pthread_mutex_t mutex_waiting_thread_count = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_waiting_thread_count = PTHREAD_COND_INITIALIZER;
+
 Threads GameThreads = {
 	.is_thr_init = { false, false, false, false, false, false, false },
 	.pause_flag = { true, true, true, true, true, true, true, true },
@@ -51,6 +55,10 @@ int get_thrnum(pthread_t thr_id) {
 }
 
 void pause_thread(int thrnum) {
+	if (thrnum == thr_food) {
+		pthread_cond_signal(&GameThreads.pause_cond[thrnum]);
+		return;
+	}
 	pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 	GameThreads.pause_flag[thrnum] = true;
 	pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
@@ -146,4 +154,17 @@ void create_thread(int thrnum) {
 		}
 		break;
 	}
+}
+
+void increment_waiting_thread_count() {
+	pthread_mutex_lock(&mutex_waiting_thread_count);
+	waiting_thread_count++;
+	pthread_cond_signal(&cond_waiting_thread_count);
+	pthread_mutex_unlock(&mutex_waiting_thread_count);
+}
+
+void decrement_waiting_thread_count() {
+	pthread_mutex_lock(&mutex_waiting_thread_count);
+	waiting_thread_count--;
+	pthread_mutex_unlock(&mutex_waiting_thread_count);
 }

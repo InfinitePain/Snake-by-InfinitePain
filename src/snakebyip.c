@@ -58,7 +58,9 @@ int main(void) {
 	while (GAME_STATE != QUIT) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
 		if (GameThreads.pause_flag[thr_main]) {
+			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thr_main], &GameThreads.thr_mutex[thr_main]);
+			decrement_waiting_thread_count();
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_main]);
 

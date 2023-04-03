@@ -14,7 +14,7 @@
 #include "terminal.h"
 #include "food.h"
 
-GameState GAME_STATE = MAIN_MENU;
+GameState GAME_STATE = NOT_STARTED;
 GameMode GAME_MODE = NOT_SELECTED;
 
 appData appArgs = {
@@ -44,7 +44,7 @@ void init_appData() {
 	create_thread(thr_snake2);
 	appArgs.pSnake2->dir = MOVE_LEFT;
 	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
-	set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) + 1);
+	set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	init_foods();
 	create_thread(thr_food);
 	create_thread(thr_collision);

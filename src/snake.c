@@ -134,12 +134,15 @@ void* snake_thread(void* args) {
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
+			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
 			if (!pSnake->is_alive) {
 				GameThreads.pause_flag[thrnum] = true;
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				break;
 			}
+			key = pSnake->dir;
+			decrement_waiting_thread_count();
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		if (GAME_STATE == QUIT) {

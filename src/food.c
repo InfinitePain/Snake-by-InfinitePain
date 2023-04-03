@@ -111,7 +111,9 @@ void init_foods() {
 void* food_thread(void* args) {
 	while (GameThreads.is_thr_init[thr_food]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
+		increment_waiting_thread_count();
 		pthread_cond_wait(&GameThreads.pause_cond[thr_food], &GameThreads.thr_mutex[thr_food]);
+		decrement_waiting_thread_count();
 		if (GAME_STATE == QUIT) {
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
 			break;
