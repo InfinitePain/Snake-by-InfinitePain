@@ -15,21 +15,23 @@
 #include "input.h"
 #include "snake.h"
 
-#define thr_input1 0
-#define thr_input2 1
-#define thr_menu   2
-#define thr_snake1 3
-#define thr_snake2 4
-#define thr_main   5
-#define mutex_win_game 6
-#define mutex_win_menu 7
+#define thr_input1	 	0 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_input2 		1 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_menu   		2 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_snake1 		3 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_snake2 		4 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_collision 	5 // has thr, is_thr_init, pause_flag, thr_mutex, pause_cond
+#define thr_food   		6 // has thr, is_thr_init, thr_mutex, pause_cond
+#define thr_main		7 // has thr, pause_flag, thr_mutex, pause_cond
+#define mutex_win_game  8 // has thr_mutex
+#define mutex_food		9 // has thr_mutex
 
 typedef struct Threads {
-	pthread_t thr[5];
-	bool is_thr_init[6];
-	bool pause_flag[6];
-	pthread_mutex_t thr_mutex[8];
-	pthread_cond_t pause_cond[6];
+	pthread_t thr[7];
+	bool is_thr_init[7];
+	bool pause_flag[8];
+	pthread_mutex_t thr_mutex[10];
+	pthread_cond_t pause_cond[8];
 } Threads;
 
 extern Threads GameThreads;

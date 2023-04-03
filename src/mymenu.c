@@ -14,6 +14,7 @@
 #include "appdata.h"
 #include "error_message.h"
 #include "terminal.h"
+#include "food.h"
 
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
@@ -47,12 +48,17 @@ void start_game(GameMode mode, bool is_new_game) {
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 		appArgs.pSnake1->dir = MOVE_RIGHT;
 		appArgs.pSnake2->dir = MOVE_RIGHT;
+		reset_food(appArgs.pFood_Main);
 	}
 	GAME_STATE = STARTED;
 	GAME_MODE = mode;
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
+	pthread_cond_signal(&GameThreads.pause_cond[thr_food]);
+	resume_thread(thr_collision);
+	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 	if (mode == MULTIPLAYER) {
@@ -496,7 +502,7 @@ void print_menu(MENU* menu) {
 	mvwaddch(appWindows[MENU_WIN], title_spacing, 0, ACS_LTEE);
 	mvwhline(appWindows[MENU_WIN], title_spacing, 1, ACS_HLINE, width - 2);
 	mvwaddch(appWindows[MENU_WIN], title_spacing, width - 1, ACS_RTEE);
-	mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title); // Print title with 1 line of spacing
+	mvwprintw(appWindows[MENU_WIN], 1, (width - strlen(title)) / 2, "%s", title);
 	wrefresh(appWindows[MENU_WIN]);
 }
 
@@ -686,12 +692,11 @@ void* menu_thread(void* args) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
-			if (GAME_STATE == QUIT) {
-				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-				pthread_exit(NULL);
-			}
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
+		if (GAME_STATE == QUIT) {
+			break;
+		}
 
 		switch (GAME_STATE) {
 		case NOT_STARTED:
@@ -705,6 +710,13 @@ void* menu_thread(void* args) {
 			menu_info();
 			title = "Game Paused";
 			is_spaced = true;
+			break;
+		case GAME_OVER:
+			curMenu = game_menus[MAIN_MENU];
+			menu_info();
+			title = "Game Over";
+			is_spaced = true;
+			GAME_STATE = NOT_STARTED;
 			break;
 		case SETTINGS:
 			curMenu = game_menus[SETTINGS_MENU];

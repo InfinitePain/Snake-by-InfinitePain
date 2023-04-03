@@ -25,11 +25,14 @@ void delete_foods() {
 }
 
 void random_coordinate_generator(int* x, int* y) {
-	*x = (rand() % (getmaxx(appWindows[GAME_WIN]) - 1)) + 1;
-	*y = (rand() % (getmaxy(appWindows[GAME_WIN]) - 1)) + 1;
+	*x = (rand() % (getmaxx(appWindows[GAME_WIN]) - 2)) + 1;
+	*y = (rand() % (getmaxy(appWindows[GAME_WIN]) - 2)) + 1;
 }
 
 bool food_coordinate_checker(List* pList, int x, int y) {
+	if (pList == NULL) {
+		return false;
+	}
 	Element* curr = pList->head;
 	while (curr != NULL) {
 		if (x == curr->pos.posx || y == curr->pos.posy)
@@ -55,29 +58,17 @@ Element* food_adresser(List* pList) {
 	return NULL;
 }
 
-void random_food_generator(List* pFood, Snake* pSnake) {
+void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
 	int x, y;
 	Element* curr = food_adresser(pFood);
 	while (curr != NULL) {
 		random_coordinate_generator(&x, &y);
-		while (food_coordinate_checker(pFood, x, y) || food_coordinate_checker(pSnake->pos_snake, x, y)) {
+		while (food_coordinate_checker(pFood, x, y) || food_coordinate_checker(pSnake1->pos_snake, x, y) || (pSnake2 != NULL && food_coordinate_checker(pSnake2->pos_snake, x, y))) {
 			random_coordinate_generator(&x, &y);
 		}
 		curr->pos.posx = x;
 		curr->pos.posy = y;
 		curr = food_adresser(pFood);
-	}
-}
-
-void handle_food_collision(List* pFood, Snake* pSnake) {
-	Element* pElementFood = pFood->head;
-	while (pElementFood != NULL) {
-		if (pElementFood->pos.posx == pSnake->pos_snake->head->pos.posx && pElementFood->pos.posy == pSnake->pos_snake->head->pos.posy) {
-			pElementFood->pos.posx = -1;
-			pElementFood->pos.posy = -1;
-			pSnake->grow++;
-		}
-		pElementFood = pElementFood->next;
 	}
 }
 
@@ -113,6 +104,34 @@ void init_foods() {
 		error_message("ERROR: func food_init(): create_element() failed");
 		longjmp(jmp_buffer10, 1);
 	}
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER]);
+}
 
-	
+void* food_thread(void* args) {
+	while (GameThreads.is_thr_init[thr_food]) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
+		pthread_cond_wait(&GameThreads.pause_cond[thr_food], &GameThreads.thr_mutex[thr_food]);
+		if (GAME_STATE == QUIT) {
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
+			break;
+		}
+
+		switch (GAME_MODE) {
+		case SINGLE_PLAYER:
+			random_food_generator(appArgs.pFood_Single_Player, appArgs.pSnake1, NULL);
+			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+			list_printer(appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_COLOR], 0, appWindows[GAME_WIN]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+			break;
+		case MULTIPLAYER:
+			random_food_generator(appArgs.pFood_Multiplayer, appArgs.pSnake1, appArgs.pSnake2);
+			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+			list_printer(appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_COLOR], 0, appWindows[GAME_WIN]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+			break;
+		}
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
+	}
+	pthread_exit(NULL);
 }

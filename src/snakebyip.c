@@ -2,7 +2,7 @@
  ============================================================================
  Name        : snakebyip.c
  Author      : InfinitePain
- Version     : 0.8.0
+ Version     : 0.9.0
  License     : Apache License 2.0
  Description : Snake game made by InfinitePain
  ============================================================================
@@ -37,7 +37,7 @@ jmp_buf jmp_buffer10;
 
 
 
-int main(int argc, char* argv[]) {
+int main(void) {
 	if (setjmp(jmp_buffer10) != 1) {
 		init_screen();
 		init_appData();
@@ -67,12 +67,15 @@ int main(int argc, char* argv[]) {
 			if (GAME_MODE == SINGLE_PLAYER) {
 				restart_snake(appArgs.pSnake1);
 				appArgs.pSnake1->dir = MOVE_RIGHT;
+				set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 			}
 			else if (GAME_MODE == MULTIPLAYER) {
 				restart_snake(appArgs.pSnake1);
 				appArgs.pSnake1->dir = MOVE_RIGHT;
+				set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				restart_snake(appArgs.pSnake2);
-				appArgs.pSnake2->dir = MOVE_RIGHT;
+				appArgs.pSnake2->dir = MOVE_LEFT;
+				set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 			}
 			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
 			break;

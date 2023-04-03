@@ -28,6 +28,11 @@ void delete_snake(Snake* pSnake) {
 	pSnake = NULL;
 }
 
+void set_snake_position(Snake* pSnake, int x, int y) {
+	pSnake->pos_snake->head->pos.posx = x;
+	pSnake->pos_snake->head->pos.posy = y;
+}
+
 Snake* create_snake() {
 	Snake* pSnake = (Snake*)malloc(sizeof(Snake));
 	if (pSnake == NULL)
@@ -44,7 +49,11 @@ Snake* create_snake() {
 	pSnake->is_alive = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
-	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
+	add_element_to_head(pSnake->pos_snake, create_element(-1, -1, 0));
+	if (pSnake->pos_snake->head == NULL) {
+		error_message("ERROR: func create_snake(): create_element() failed");
+		longjmp(jmp_buffer10, 1);
+	}
 	return pSnake;
 }
 
@@ -59,13 +68,17 @@ void restart_snake(Snake* pSnake) {
 	pSnake->is_alive = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
-	add_element_to_head(pSnake->pos_snake, create_element(5, 5, 0));
+	add_element_to_head(pSnake->pos_snake, create_element(-1, -1, 0));
+	if (pSnake->pos_snake->head == NULL) {
+		error_message("ERROR: func restart_snake(): create_element() failed");
+		longjmp(jmp_buffer10, 1);
+	}
 }
 
 void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 	int posx = pSnake->pos_snake->head->pos.posx;
 	int posy = pSnake->pos_snake->head->pos.posy;
-
+	pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
 	if (setjmp(jmp_buffer8) != 1) {
 		switch (direction)
 		{
@@ -84,6 +97,7 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 		}
 	}
 	else {
+		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
 		error_message("ERROR: func move_snake(): create_element() failed");
 		longjmp(jmp_buffer9, 1);
 	}
@@ -94,6 +108,7 @@ void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
 	else if (pSnake->grow == 0) {
 		delete_last_element(pSnake->pos_snake);
 	}
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
 }
 
 bool is_key_reverse(int key, int dir) {
@@ -125,14 +140,12 @@ void* snake_thread(void* args) {
 				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 				break;
 			}
-			if (GAME_STATE == QUIT) {
-				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-				pthread_exit(NULL);
-			}
-			key = pSnake->dir;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-		
+		if (GAME_STATE == QUIT) {
+			break;
+		}
+
 		if (setjmp(jmp_buffer9) != 1) {
 			if (pSnake->dir != key && !is_key_reverse(key, pSnake->dir)) {
 				key = pSnake->dir;

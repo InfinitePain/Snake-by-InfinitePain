@@ -61,6 +61,7 @@ void input_driver(const int key) {
 			pause_thread(thr_snake2);
 			pause_thread(thr_input1);
 			pause_thread(thr_input2);
+			pause_thread(thr_collision);
 			resume_thread(thr_menu);
 		}
 		break;
@@ -80,12 +81,11 @@ void* input_thread(void* args) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);
 		while (GameThreads.pause_flag[thrnum]) {
 			pthread_cond_wait(&GameThreads.pause_cond[thrnum], &GameThreads.thr_mutex[thrnum]);
-			if (GAME_STATE == QUIT) {
-				pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
-				pthread_exit(NULL);
-			}
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
+		if (GAME_STATE == QUIT) {
+			break;
+		}
 		inp = wgetch(appWindows[thrnum]);
 		if (inp != ERR) {
 			input_driver(inp);

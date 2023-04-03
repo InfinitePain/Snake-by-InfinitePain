@@ -28,6 +28,7 @@ typedef struct Snake
 } Snake;
 
 void delete_snake(Snake* pSnake);
+void set_snake_position(Snake* pSnake, int x, int y);
 Snake* create_snake();
 void restart_snake(Snake* pSnake);
 void move_snake(const Config* pConfig, int direction, Snake* pSnake);

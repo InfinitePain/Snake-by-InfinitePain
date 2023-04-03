@@ -24,6 +24,7 @@
 typedef enum GameState {
 	NOT_STARTED,
 	STARTED,
+	GAME_OVER,
 	SETTINGS,
 	QUIT,
 	CRITICAL_ERROR,
