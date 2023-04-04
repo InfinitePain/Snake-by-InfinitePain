@@ -81,6 +81,26 @@ void reset_food(List* pFood) {
 	}
 }
 
+void resize_foods() {
+    int max_food = appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER];
+    if (appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] > max_food) {
+        max_food = appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER];
+    }
+
+    while (max_food != appArgs.pFood_Main->size) {
+        if (max_food > appArgs.pFood_Main->size) {
+            add_element_to_head(appArgs.pFood_Main, create_element(-1, -1, 12));
+		}
+		else {
+			delete_last_element(appArgs.pFood_Main);
+        }
+	}
+	
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
+    make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER]);
+}
+
+
 void init_foods() {
 	appArgs.pFood_Main = create_list();
 	appArgs.pFood_Multiplayer = create_list();

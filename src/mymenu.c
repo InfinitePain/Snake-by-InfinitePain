@@ -37,6 +37,30 @@ char* settings_menu_names[NUM_CONFIGS - 2];
 char* settings_menu_descriptions[NUM_CONFIGS - 2];
 char* title;
 bool is_spaced;
+MENU* curMenu = NULL;
+MENU* prevMenu = NULL;
+
+void change_menu(MENU* menu) {
+	prevMenu = curMenu;
+	curMenu = menu;
+
+	if (curMenu == game_menus[MAIN_MENU]) {
+		is_spaced = true;
+		GAME_STATE = NOT_STARTED;
+	}
+	else if (curMenu == game_menus[PAUSE_MENU]) {
+		is_spaced = true;
+		GAME_STATE = STARTED;
+	}
+	else if (curMenu == game_menus[SETTINGS_MENU]) {
+		is_spaced = false;
+		GAME_STATE = SETTINGS;
+	}
+}
+
+void req_prev_menu() {
+	change_menu(prevMenu);
+}
 
 void start_game(GameMode mode, bool is_new_game) {
 	wclear(appWindows[GAME_WIN]);
@@ -69,15 +93,17 @@ void start_game(GameMode mode, bool is_new_game) {
 
 void func_Single_Player() {
 	start_game(SINGLE_PLAYER, true);
+	change_menu(game_menus[PAUSE_MENU]);
 }
 
 void func_Multiplayer() {
 	start_game(MULTIPLAYER, true);
+	change_menu(game_menus[PAUSE_MENU]);
 }
 
 void func_Settings() {
+	change_menu(game_menus[SETTINGS_MENU]);
 	GAME_STATE = SETTINGS;
-	//TODO back->settings turns back to game menu
 	resume_thread(thr_menu);
 }
 
@@ -95,7 +121,9 @@ void func_Continue() {
 }
 
 void func_Back() {
-	GAME_MODE = RESTARTING;
+	set_current_item(curMenu, menu_items(curMenu)[0]);
+	change_menu(game_menus[MAIN_MENU]);
+	set_current_item(curMenu, menu_items(curMenu)[0]);
 	resume_thread(thr_menu);
 }
 
@@ -627,21 +655,21 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 		print_menu(menu);
 		break;
 	case '\n':
-		if (GAME_STATE == NOT_STARTED || GAME_STATE == STARTED) {
+		if (menu == game_menus[MAIN_MENU] || menu == game_menus[PAUSE_MENU]) {
 			*loop_flag = false;
 			erase_menu(menu);
 			pause_thread(thr_menu);
 			pfunc = item_userptr(current_item(menu));
 			pfunc();
 		}
-		else if (GAME_STATE == SETTINGS) {
+		else if (menu == game_menus[SETTINGS_MENU]) {
 			settings_value_changer(menu);
 		}
 		break;
 	case 27:
 	case 34:
 	case 94:
-		if (GAME_STATE == SETTINGS) {
+		if (menu == game_menus[SETTINGS_MENU]) {
 			*loop_flag = false;
 			erase_menu(menu);
 			if (*should_save) {
@@ -654,19 +682,19 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 					menu->items[i]->description.str = settings_menu_descriptions[i];
 				}
 			}
-			if (GAME_MODE == RESTARTING || GAME_MODE == NOT_SELECTED || GAME_STATE == GAME_OVER) {
-					GAME_STATE = NOT_STARTED;
-			}
-			else {
-				GAME_STATE = STARTED;
-			}
+			set_current_item(curMenu, menu_items(curMenu)[0]);
+			req_prev_menu();
 		}
 		break;
 	case KEY_F(9):
 	case 57:
-		if (GAME_STATE == SETTINGS) {
+		if (menu == game_menus[SETTINGS_MENU]) {
 			*should_save = true;
 			write_config(appArgs.pConfig);
+			pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
+			resume_thread(thr_main);
+			pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
 				old_values[i] = appArgs.pConfig->configs[i];
 			}
@@ -674,20 +702,20 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 		break;
 	case KEY_F(10):
 	case 48:
-		if (GAME_STATE == SETTINGS) {
+		if (menu == game_menus[SETTINGS_MENU]) {
 			*loop_flag = false;
 			erase_menu(menu);
 			write_config(appArgs.pConfig);
+			pthread_mutex_lock(&GameThreads.thr_mutex[thr_menu]);
+			resume_thread(thr_main);
+			pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
 				old_values[i] = appArgs.pConfig->configs[i];
 			}
 			*should_save = false;
-			if (GAME_MODE == SINGLE_PLAYER || GAME_MODE == MULTIPLAYER) {
-				GAME_STATE = STARTED;
-			}
-			else {
-				GAME_STATE = NOT_STARTED;
-			}
+			set_current_item(curMenu, menu_items(curMenu)[0]);
+			req_prev_menu();
 		}
 		break;
 	}
@@ -698,10 +726,10 @@ void* menu_thread(void* args) {
 	noecho();
 	keypad(appWindows[MENU_WIN], TRUE);
 	nodelay(appWindows[MENU_WIN], FALSE);
-
+	curMenu = game_menus[MAIN_MENU];
+	is_spaced = true;
 	int key;
 	int thrnum = get_thrnum(pthread_self());
-	MENU* curMenu = game_menus[MAIN_MENU];
 	bool loop_flag = true;
 	bool should_save = false;
 	int old_values[NUM_CONFIGS - 2];
@@ -727,37 +755,25 @@ void* menu_thread(void* args) {
 
 		switch (GAME_STATE) {
 		case NOT_STARTED:
-			curMenu = game_menus[MAIN_MENU];
 			menu_info();
 			title = "Snake by InfinitePain";
-			is_spaced = true;
 			break;
 		case STARTED:
-			curMenu = game_menus[PAUSE_MENU];
 			menu_info();
 			title = "Game Paused";
-			is_spaced = true;
 			break;
 		case GAME_OVER:
-			curMenu = game_menus[MAIN_MENU];
 			menu_info();
+			change_menu(game_menus[MAIN_MENU]);
 			title = "Game Over";
-			is_spaced = true;
 			GAME_STATE = NOT_STARTED;
 			break;
 		case SETTINGS:
-			curMenu = game_menus[SETTINGS_MENU];
 			setting_info();
 			title = "Settings";
-			is_spaced = false;
 			break;
 		}
 		loop_flag = true;
-
-		if (GAME_MODE == RESTARTING) {
-			GAME_STATE = NOT_STARTED;
-		}
-
 
 		print_menu(curMenu);
 		while (loop_flag) {

@@ -24,6 +24,8 @@
 
 extern MENU* game_menus[3];
 
+void change_menu(MENU* menu);
+void req_prev_menu();
 void delete_menu(int index);
 void delete_menus();
 void set_menu_attr(MENU* menu);

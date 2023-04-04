@@ -19,8 +19,8 @@ void random_coordinate_generator(int* x, int* y);
 bool food_coordinate_checker(List* pList, int x, int y);
 Element* food_adresser(List* pList);
 void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2);
-
 void reset_food(List* pFood);
+void resize_foods();
 void init_foods();
 void* food_thread(void* arg);
 
