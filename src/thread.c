@@ -56,7 +56,6 @@ int get_thrnum(pthread_t thr_id) {
 
 void pause_thread(int thrnum) {
 	if (thrnum == thr_food) {
-		pthread_cond_signal(&GameThreads.pause_cond[thrnum]);
 		return;
 	}
 	pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);

@@ -79,7 +79,6 @@ void start_game(GameMode mode, bool is_new_game) {
 	resume_thread(thr_input1);
 	resume_thread(thr_input2);
 	pthread_cond_signal(&GameThreads.pause_cond[thr_food]);
-	resume_thread(thr_collision);
 	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
@@ -89,6 +88,7 @@ void start_game(GameMode mode, bool is_new_game) {
 		appArgs.pSnake2->is_alive = true;
 		resume_thread(thr_snake2);
 	}
+	resume_thread(thr_collision);
 }
 
 void func_Single_Player() {
@@ -113,6 +113,7 @@ void func_Quit() {
 	pause_thread(thr_input2);
 	pause_thread(thr_snake1);
 	pause_thread(thr_snake2);
+	pause_thread(thr_collision);
 	resume_thread(thr_main);
 }
 

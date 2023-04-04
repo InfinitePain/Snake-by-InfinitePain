@@ -12,6 +12,13 @@
 #include "food.h"
 #include <ncurses.h>
 #include "terminal.h"
+#include "time.h"
+#include "terminal.h"
+
+clock_t start_time;
+clock_t pause_total_time;
+bool game_timer_needs_reset = false;
+
 
 bool is_snake_collided(Snake* pSnake) {
 	Element* pElement = pSnake->pos_snake->head->next;
@@ -31,7 +38,6 @@ bool is_snake_collided_with_wall(Snake* pSnake) {
 	return false;
 }
 
-//checks if the first snake bites the second snake
 bool is_snake_collided_with_snake(Snake* pSnake1, Snake* pSnake2) {
 	Element* pElement = pSnake2->pos_snake->head;
 	while (pElement != NULL) {
@@ -65,6 +71,9 @@ void handle_food_collision(Element* collided_food, Snake* pSnake) {
 }
 
 void game_over() {
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake1]);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake2]);
 	GAME_STATE = GAME_OVER;
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
@@ -74,11 +83,13 @@ void game_over() {
 	resume_thread(thr_menu);
 }
 
-void collision_snake(Snake* pSnake) {
+bool collision_snake(Snake* pSnake) {
+	bool is_collided = false;
 	if (is_snake_collided(pSnake) || is_snake_collided_with_wall(pSnake)) {
 		pSnake->is_alive = false;
-		game_over();
+		is_collided = true;
 	}
+	return is_collided;
 }
 
 void collision_food() {
@@ -110,43 +121,91 @@ void collision_food() {
 	}
 }
 
-void collision_snake_with_snake() {
+bool collision_snake_with_snake() {
+	bool is_collided = false;
 	if (is_snake_collided_with_snake(appArgs.pSnake1, appArgs.pSnake2)) {
 		appArgs.pSnake1->is_alive = false;
-		game_over();
+		is_collided = true;
 	}
 	if (is_snake_collided_with_snake(appArgs.pSnake2, appArgs.pSnake1)) {
 		appArgs.pSnake2->is_alive = false;
 		game_over();
+		is_collided = true;
 	}
+	return is_collided;
+}
+
+double calculate_elapsed_time(clock_t start_time) {
+	clock_t end_time = clock();
+	double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+	return elapsed_time;
+}
+
+void print_time(double elapsed_time) {
+	int minutes = (int)elapsed_time / 60;
+	int seconds = (int)elapsed_time % 60;
+	mvwprintw(stdscr, 1, appArgs.pConfig->configs[SCREEN_WIDTH] / 2 - 3, "%02d:%02d", minutes, seconds);
+	wrefresh(stdscr);
+}
+
+void reset_game_timer() {
+	start_time = clock();
+	pause_total_time = 0;
 }
 
 void* collision_thread(void* arg) {
+	bool is_collided = false;
+	clock_t pause_start_time;
+
+	start_time = clock();
 	while (GameThreads.is_thr_init[thr_collision]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_collision]);
 		while (GameThreads.pause_flag[thr_collision]) {
+			pause_start_time = clock();
 			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thr_collision], &GameThreads.thr_mutex[thr_collision]);
 			decrement_waiting_thread_count();
+			pause_total_time += clock() - pause_start_time;
+			is_collided = false;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_collision]);
 		if (GAME_STATE == QUIT) {
 			break;
 		}
+
+		if (game_timer_needs_reset) {
+			reset_game_timer();
+			game_timer_needs_reset = false;
+		}
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
+		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake1]);
+		pthread_mutex_lock(&GameThreads.thr_mutex[thr_snake2]);
 		switch (GAME_MODE) {
 		case SINGLE_PLAYER:
-			collision_snake(appArgs.pSnake1);
-			collision_food();
-			break;
+			if (collision_snake(appArgs.pSnake1)) {
+				is_collided = true;
+				game_over();
+			}
+			else {
+				collision_food();
+			}
+				break;
 		case MULTIPLAYER:
-			collision_snake(appArgs.pSnake1);
-			collision_snake(appArgs.pSnake2);
-			collision_snake_with_snake();
-			collision_food();
+			if (collision_snake(appArgs.pSnake1) || collision_snake(appArgs.pSnake2) || collision_snake_with_snake()) {
+				is_collided = true;
+				game_over();
+			}
+			else {
+				collision_food();
+			}
 			break;
 		}
-		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
+		if (!is_collided) {
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake1]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake2]);
+		}
+		print_time(calculate_elapsed_time(start_time) - pause_total_time / CLOCKS_PER_SEC);
 	}
 	pthread_exit(NULL);
 }
