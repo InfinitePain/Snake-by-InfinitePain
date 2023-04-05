@@ -10,7 +10,7 @@
 #ifndef LIST_H_
 #define LIST_H_
 
-#include <element.h>
+#include "element.h"
 #include <stdbool.h>
 #include <pthread.h>
 #include <ncurses.h>
