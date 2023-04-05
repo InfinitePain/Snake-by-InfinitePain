@@ -23,7 +23,7 @@ typedef struct Snake {
 	List* pos_snake;
 	int grow;
 	int point;
-	int dir;
+	DirectionBuffer dir_buffer;
 	int* color;
 } Snake;
 

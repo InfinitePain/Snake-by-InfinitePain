@@ -24,6 +24,7 @@
 #include "mymenu.h"
 #include "food.h"
 #include "collision.h"
+#include "direction_buffer.h"
 
  /*
 jmp_buffer1 for create_alphabet
@@ -70,17 +71,20 @@ int main(void) {
 		case NOT_STARTED:
 			if (GAME_MODE == SINGLE_PLAYER) {
 				restart_snake(appArgs.pSnake1);
-				appArgs.pSnake1->dir = MOVE_RIGHT;
+				buffer_clear(&appArgs.pSnake1->dir_buffer);
+				buffer_push(&appArgs.pSnake1->dir_buffer, MOVE_RIGHT);
 				set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				game_timer_needs_reset = true;
 
 			}
 			else if (GAME_MODE == MULTIPLAYER) {
 				restart_snake(appArgs.pSnake1);
-				appArgs.pSnake1->dir = MOVE_RIGHT;
+				buffer_clear(&appArgs.pSnake1->dir_buffer);
+				buffer_push(&appArgs.pSnake1->dir_buffer, MOVE_RIGHT);
 				set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				restart_snake(appArgs.pSnake2);
-				appArgs.pSnake2->dir = MOVE_LEFT;
+				buffer_clear(&appArgs.pSnake2->dir_buffer);
+				buffer_push(&appArgs.pSnake2->dir_buffer, MOVE_LEFT);
 				set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				game_timer_needs_reset = true;
 			}

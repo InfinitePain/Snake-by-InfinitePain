@@ -50,10 +50,10 @@ void input_driver(const int key) {
 	switch (differentiator(key))
 	{
 	case Player_1:
-		appArgs.pSnake1->dir = read_input(key);
+		buffer_push(&appArgs.pSnake1->dir_buffer, read_input(key));
 		break;
 	case Player_2:
-		appArgs.pSnake2->dir = read_input(key);
+		buffer_push(&appArgs.pSnake2->dir_buffer, read_input(key));
 		break;
 	default:
 		if (key == 27 || key == 34 || key == 94) {
@@ -75,7 +75,6 @@ void* input_thread(void* args) {
 	cbreak();
 	nodelay(appWindows[thrnum], TRUE);
 	keypad(appWindows[thrnum], TRUE);
-	// wgetch(appWindows[thrnum]);
 	timeout(100);
 	while (GameThreads.is_thr_init[thrnum]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thrnum]);

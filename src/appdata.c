@@ -13,6 +13,7 @@
 #include <time.h>
 #include "terminal.h"
 #include "food.h"
+#include "direction_buffer.h"
 
 GameState GAME_STATE = NOT_STARTED;
 GameMode GAME_MODE = NOT_SELECTED;
@@ -37,12 +38,12 @@ void init_appData() {
 	appArgs.pWall = create_wall();
 	appArgs.pSnake1 = create_snake();
 	create_thread(thr_snake1);
-	appArgs.pSnake1->dir = MOVE_RIGHT;
+	buffer_push(&appArgs.pSnake1->dir_buffer, MOVE_RIGHT);
 	appArgs.pSnake1->color = &appArgs.pConfig->configs[PLAYER_1_COLOR];
 	set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	appArgs.pSnake2 = create_snake();
 	create_thread(thr_snake2);
-	appArgs.pSnake2->dir = MOVE_LEFT;
+	buffer_push(&appArgs.pSnake2->dir_buffer, MOVE_LEFT);
 	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
 	set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	init_foods();

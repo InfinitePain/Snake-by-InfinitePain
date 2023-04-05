@@ -24,5 +24,8 @@ bool buffer_is_empty(DirectionBuffer* buffer);
 bool buffer_is_full(DirectionBuffer* buffer);
 void buffer_push(DirectionBuffer* buffer, int direction);
 int buffer_pop(DirectionBuffer* buffer);
+int buffer_peek(DirectionBuffer* buffer);
+void buffer_clear(DirectionBuffer* buffer);
+
 
 #endif /*DIRECTION_BUFFER_H_*/

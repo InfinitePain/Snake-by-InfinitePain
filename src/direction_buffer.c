@@ -37,3 +37,15 @@ int buffer_pop(DirectionBuffer *buffer) {
     }
     return -1;
 }
+
+int buffer_peek(DirectionBuffer* buffer) {
+    if (buffer_is_empty(buffer)) {
+        return -1;
+    }
+    return buffer->buffer[buffer->tail];
+}
+
+void buffer_clear(DirectionBuffer *buffer) {
+    buffer->head = 0;
+    buffer->tail = 0;
+}

@@ -71,8 +71,6 @@ void start_game(GameMode mode, bool is_new_game) {
 		resume_thread(thr_main);
 		pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
-		appArgs.pSnake1->dir = MOVE_RIGHT;
-		appArgs.pSnake2->dir = MOVE_LEFT;
 		reset_food(appArgs.pFood_Main);
 	}
 	GAME_STATE = STARTED;
