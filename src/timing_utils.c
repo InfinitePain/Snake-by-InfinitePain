@@ -8,7 +8,7 @@
 */
 
 #include "timing_utils.h"
-#if _WIN32
+#if __MINGW32__
 #include <windows.h>
 #else
 #include <sys/time.h>
@@ -16,7 +16,7 @@
 #endif
 
 double get_current_time_in_seconds() {
-#ifdef _WIN32
+#ifdef __MINGW32__
 	LARGE_INTEGER freq, counter;
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&counter);

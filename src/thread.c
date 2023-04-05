@@ -13,7 +13,6 @@
 #include <setjmp.h>
 #include "snake.h"
 #include <mymenu.h>
-#include <appdata.h>
 #include "food.h"
 #include "collision.h"
 
