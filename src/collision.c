@@ -12,13 +12,12 @@
 #include "food.h"
 #include <ncurses.h>
 #include "terminal.h"
-#include "time.h"
 #include "terminal.h"
+#include "timing_utils.h"
 
-clock_t start_time;
-clock_t pause_total_time;
 bool game_timer_needs_reset = false;
-
+bool score_changed = true;
+bool time_changed = true;
 
 bool is_snake_collided(Snake* pSnake) {
 	Element* pElement = pSnake->pos_snake->head->next;
@@ -67,7 +66,19 @@ void handle_food_collision(Element* collided_food, Snake* pSnake) {
 		collided_food->pos.posy = -1;
 		pSnake->grow++;
 		pSnake->point++;
+		score_changed = true;
 	}
+}
+
+int best_score() {
+	int best_score = appArgs.pSnake1->point;
+	if (best_score < appArgs.pSnake2->point) {
+		best_score = appArgs.pSnake2->point;
+	}
+	if (best_score < appArgs.pConfig->configs[MAX_POINT]) {
+		best_score = appArgs.pConfig->configs[MAX_POINT];
+	}
+	return best_score;
 }
 
 void game_over() {
@@ -80,6 +91,8 @@ void game_over() {
 	pause_thread(thr_snake1);
 	pause_thread(thr_snake2);
 	pause_thread(thr_collision);
+	appArgs.pConfig->configs[MAX_POINT] = best_score();
+	write_config(appArgs.pConfig);
 	resume_thread(thr_menu);
 }
 
@@ -135,37 +148,51 @@ bool collision_snake_with_snake() {
 	return is_collided;
 }
 
-double calculate_elapsed_time(clock_t start_time) {
-	clock_t end_time = clock();
-	double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-	return elapsed_time;
-}
-
 void print_time(double elapsed_time) {
-	int minutes = (int)elapsed_time / 60;
-	int seconds = (int)elapsed_time % 60;
-	mvwprintw(stdscr, 1, appArgs.pConfig->configs[SCREEN_WIDTH] / 2 - 3, "%02d:%02d", minutes, seconds);
-	wrefresh(stdscr);
+	if (time_changed){
+		int minutes = (int)elapsed_time / 60;
+		int seconds = (int)elapsed_time % 60;
+		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+		mvwprintw(stdscr, 1, appArgs.pConfig->configs[SCREEN_WIDTH] / 2 - 3, "%02d:%02d", minutes, seconds);
+		wrefresh(stdscr);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+		time_changed = false;
+	}
 }
 
-void reset_game_timer() {
-	start_time = clock();
-	pause_total_time = 0;
+void print_score() {
+	if (score_changed) {
+		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+		switch (GAME_MODE) {
+		case SINGLE_PLAYER:
+			mvwprintw(stdscr, 1, 3, "Score: %d", appArgs.pSnake1->point);
+			break;
+		case MULTIPLAYER:
+			mvwprintw(stdscr, 1, 3, "Score 1: %d", appArgs.pSnake1->point);
+			mvwprintw(stdscr, 2, 3, "Score 2: %d", appArgs.pSnake2->point);
+			break;
+		}
+		mvwprintw(stdscr, 1, appArgs.pConfig->configs[SCREEN_WIDTH] - 12, "Best: %3d", best_score());
+		wrefresh(stdscr);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+		score_changed = false;
+	}
 }
 
 void* collision_thread(void* arg) {
 	bool is_collided = false;
-	clock_t pause_start_time;
+	double start_time, pause_start_time, pause_total_time;
+	double last_time_update = 0;
 
-	start_time = clock();
+	reset_timer(&start_time, &pause_total_time);
 	while (GameThreads.is_thr_init[thr_collision]) {
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_collision]);
 		while (GameThreads.pause_flag[thr_collision]) {
-			pause_start_time = clock();
+			pause_start_time = get_current_time_in_seconds();
 			increment_waiting_thread_count();
 			pthread_cond_wait(&GameThreads.pause_cond[thr_collision], &GameThreads.thr_mutex[thr_collision]);
 			decrement_waiting_thread_count();
-			pause_total_time += clock() - pause_start_time;
+			pause_total_time += get_current_time_in_seconds() - pause_start_time;
 			is_collided = false;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_collision]);
@@ -174,7 +201,8 @@ void* collision_thread(void* arg) {
 		}
 
 		if (game_timer_needs_reset) {
-			reset_game_timer();
+			reset_timer(&start_time, &pause_total_time);
+			last_time_update = start_time;
 			game_timer_needs_reset = false;
 		}
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
@@ -200,12 +228,19 @@ void* collision_thread(void* arg) {
 			}
 			break;
 		}
+		print_score();
 		if (!is_collided) {
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake1]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_snake2]);
 		}
-		print_time(calculate_elapsed_time(start_time) - pause_total_time / CLOCKS_PER_SEC);
+        double current_time = calculate_elapsed_time(start_time) - pause_total_time;
+        if (current_time - last_time_update >= 1.0) {
+            time_changed = true;
+            last_time_update = current_time;
+        }
+
+        print_time(current_time);
 	}
 	pthread_exit(NULL);
 }

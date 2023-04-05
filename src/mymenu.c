@@ -15,6 +15,7 @@
 #include "error_message.h"
 #include "terminal.h"
 #include "food.h"
+#include "collision.h"
 
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer11;
@@ -33,8 +34,8 @@ char* pause_menu_names[4] = {
 	"Quit"
 };
 
-char* settings_menu_names[NUM_CONFIGS - 2];
-char* settings_menu_descriptions[NUM_CONFIGS - 2];
+char* settings_menu_names[NUM_CONFIGS - 1];
+char* settings_menu_descriptions[NUM_CONFIGS - 1];
 char* title;
 bool is_spaced;
 MENU* curMenu = NULL;
@@ -109,6 +110,8 @@ void func_Settings() {
 
 void func_Quit() {
 	GAME_STATE = QUIT;
+	appArgs.pConfig->configs[MAX_POINT] = best_score();
+	write_config(appArgs.pConfig);
 	pause_thread(thr_input1);
 	pause_thread(thr_input2);
 	pause_thread(thr_snake1);
@@ -147,7 +150,7 @@ void delete_menus() {
 	for (int i = 0; i < 3; i++) {
 		delete_menu(i);
 	}
-	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+	for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 		if (settings_menu_names[i] != NULL) {
 			free(settings_menu_names[i]);
 		}
@@ -394,6 +397,7 @@ void settings_value_changer(MENU* menu) {
 	case SNAKE_LENGTH:
 	case FOOD_AMOUNT_SINGLE_PLAYER:
 	case FOOD_AMOUNT_MULTIPLAYER:
+	case GAME_SPEED:
 		chg_info(true);
 		int_value_changer(menu);
 		break;
@@ -461,6 +465,7 @@ void config_value_to_string(int config_index) {
 	case SNAKE_LENGTH:
 	case FOOD_AMOUNT_SINGLE_PLAYER:
 	case FOOD_AMOUNT_MULTIPLAYER:
+	case GAME_SPEED:
 		snprintf(settings_menu_descriptions[config_index], 10, "%9d", appArgs.pConfig->configs[config_index]);
 		break;
 	default:
@@ -471,11 +476,11 @@ void config_value_to_string(int config_index) {
 }
 
 void get_settings_item_strings(char** item_names, char** item_descriptions) {
-	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+	for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 		item_names[i] = NULL;
 		item_descriptions[i] = NULL;
 	}
-	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+	for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 		item_names[i] = strdup(config_names[i]);
 		if (item_names[i] == NULL) {
 			error_message("ERROR: func get_settings_item_strings(): strdup() failed");
@@ -677,7 +682,7 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 				*should_save = false;
 			}
 			else {
-				for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+				for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 					appArgs.pConfig->configs[i] = old_values[i];
 					config_value_to_string(i);
 					menu->items[i]->description.str = settings_menu_descriptions[i];
@@ -696,7 +701,7 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 			resume_thread(thr_main);
 			pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
-			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+			for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 				old_values[i] = appArgs.pConfig->configs[i];
 			}
 		}
@@ -711,7 +716,7 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 			resume_thread(thr_main);
 			pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
-			for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+			for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 				old_values[i] = appArgs.pConfig->configs[i];
 			}
 			*should_save = false;
@@ -733,8 +738,8 @@ void* menu_thread(void* args) {
 	int thrnum = get_thrnum(pthread_self());
 	bool loop_flag = true;
 	bool should_save = false;
-	int old_values[NUM_CONFIGS - 2];
-	for (int i = 0; i < NUM_CONFIGS - 2; i++) {
+	int old_values[NUM_CONFIGS - 1];
+	for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 		old_values[i] = appArgs.pConfig->configs[i];
 	}
 

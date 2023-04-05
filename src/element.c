@@ -16,14 +16,12 @@
 
 extern jmp_buf jmp_buffer3;
 extern jmp_buf jmp_buffer7;
-extern jmp_buf jmp_buffer8;
 extern jmp_buf jmp_buffer12;
 
 
 /*
 3 for list_copy
 7 for the wall functions
-8 for move_snake
 12 for init_food
 */
 Element* create_element(const int posx, const int posy, int purpose) {
@@ -38,13 +36,8 @@ Element* create_element(const int posx, const int posy, int purpose) {
 		case 7:
 			longjmp(jmp_buffer7, 1);
 			break;
-		case 8:
-			longjmp(jmp_buffer8, 1);
-			break;
 		case 12:
 			longjmp(jmp_buffer12, 1);
-			break;
-		default:
 			break;
 		}
 		return NULL;

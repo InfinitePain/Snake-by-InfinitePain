@@ -43,9 +43,8 @@
 #define SNAKE_LENGTH 15
 #define FOOD_AMOUNT_SINGLE_PLAYER 16
 #define FOOD_AMOUNT_MULTIPLAYER 17
-//TODO add game speed "#define GAME_SPEED x"
-#define PLAYER_1_POINT 18
-#define PLAYER_2_POINT 19
+#define GAME_SPEED 18
+#define MAX_POINT 19
 
 extern char* config_names[NUM_CONFIGS];
 

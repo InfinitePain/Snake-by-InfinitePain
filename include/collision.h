@@ -21,7 +21,13 @@ bool is_snake_collided_with_wall(Snake* pSnake);
 bool is_snake_collided_with_snake(Snake* pSnake1, Snake* pSnake2);
 Element* get_collided_food_element(List* pFood, Snake* pSnake);
 void handle_food_collision(Element* collided_food, Snake* pSnake);
-void reset_game_timer();
+int best_score();
+void game_over();
+bool collision_snake(Snake* pSnake);
+void collision_food();
+bool collision_snake_with_snake();
+void print_time(double elapsed_time);
+void print_score();
 void* collision_thread(void* arg);
 
 #endif /*COLLISION_H_*/

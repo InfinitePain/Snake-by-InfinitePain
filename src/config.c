@@ -47,8 +47,8 @@ char* config_names[NUM_CONFIGS] = {
 	"SNAKE LENGTH",
 	"FOOD SINGLE PLAYER",
 	"FOOD MULTIPLAYER",
-	"PLAYER 1 POINT",
-	"PLAYER 2 POINT"
+	"GAME SPEED",
+	"MAX POINT",
 	//TODO if you add more configs, adjust this
 };
 
@@ -234,8 +234,8 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[SNAKE_LENGTH] = 10;
 	pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] = 1;
 	pConfig->configs[FOOD_AMOUNT_MULTIPLAYER] = 2;
-	pConfig->configs[PLAYER_1_POINT] = 0;
-	pConfig->configs[PLAYER_2_POINT] = 0;
+	pConfig->configs[GAME_SPEED] = 4;
+	pConfig->configs[MAX_POINT] = 0;
 	//TODO if you add more configs, adjust this
 }
 
