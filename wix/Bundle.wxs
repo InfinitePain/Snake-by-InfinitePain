@@ -1,0 +1,27 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <Bundle Name="Snake-by-InfinitePain_Installer"
+          Version="1.0.0"
+          Manufacturer="InfinitePain"
+          UpgradeCode="46a4c87c-8cf6-49f0-917b-2513df9e5714">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+      <bal:WixStandardBootstrapperApplication LicenseFile="LICENSE.rtf" />
+    </BootstrapperApplicationRef>
+
+    <Chain>
+      <ExePackage Id="VCRedist"
+                  Cache="no"
+                  Compressed="yes"
+                  PerMachine="yes"
+                  Permanent="yes"
+                  Vital="yes"
+                  SourceFile="VC_redist.x64.exe"
+                  InstallCommand="/install /norestart"
+                  DetectCondition="VCRedistInstalled"
+                  InstallCondition="NOT VCRedistInstalled" />
+
+      <MsiPackage Id="Snake_by_InfinitePain"
+                  SourceFile="../out/build/W-x64-r-GCC-N/Snake-by-InfinitePain-1.0.0-Windows_Installer.msi" />
+    </Chain>
+  </Bundle>
+</Wix>
