@@ -65,9 +65,21 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "Snake-by-InfinitePain")
 set(CPACK_PACKAGE_EXECUTABLES "Snake-by-InfinitePain" "Snake-by-InfinitePain")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}-${CMAKE_SYSTEM_NAME}_Installer")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+set(CPACK_SOURCE_IGNORE_FILES
+    "/.git/"
+    "/.gitignore$"
+    "/.vscode/"
+    "/.devcontainer/"
+    "/out/"
+    "/wix/"
+    "~$"
+    ".DS_Store$"
+    ".swp$"
+)
+
+set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 
 if(WIN32)
-set(CPACK_SOURCE_GENERATOR "ZIP")
 set(CPACK_GENERATOR "WIX")
 function(set_install_property install_file property_name property_value)
 	if(NOT DEFINED install_file OR NOT DEFINED property_name OR NOT DEFINED property_value)
