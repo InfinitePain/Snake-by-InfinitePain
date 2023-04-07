@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include <errno.h>
 #include <string.h>

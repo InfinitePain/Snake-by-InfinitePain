@@ -10,6 +10,7 @@
 #include "element.h"
 #include <stdlib.h>
 #include "error_message.h"
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include <setjmp.h>
 #include <time.h>

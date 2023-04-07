@@ -11,6 +11,7 @@
 #include "CMakeProjectConfig.h"
 #include <stdlib.h>
 #include <unistd.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include "config.h"
 #include "input.h"

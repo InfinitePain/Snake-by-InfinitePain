@@ -29,12 +29,6 @@ out/*
 *.gch
 *.pch
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
@@ -81,3 +75,6 @@ configurations.txt
 Snake-by-InfinitePain changes.txt
 
 /wix/VC_redist.x64.exe
+/wix/Bundle.wixobj
+/wix/Snake-by-InfinitePain_Installer.wixpdb
+/wix/Snake-by-InfinitePain-Windows_Installer.wixpdb

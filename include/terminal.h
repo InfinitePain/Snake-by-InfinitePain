@@ -10,6 +10,7 @@
 #ifndef TERMINAL_H_
 #define TERMINAL_H_
 
+#define NCURSES_STATIC
 #include <ncurses.h>
 
 #define INPUT1_WIN 0

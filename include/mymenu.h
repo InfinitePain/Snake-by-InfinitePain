@@ -10,6 +10,7 @@
 #ifndef MYMENU_H_
 #define MYMENU_H_
 
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include <menu.h>
 #include <pthread.h>

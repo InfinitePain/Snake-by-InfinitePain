@@ -9,6 +9,7 @@
 
 #include "food.h"
 #include <stdlib.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include <setjmp.h>
 #include "terminal.h"

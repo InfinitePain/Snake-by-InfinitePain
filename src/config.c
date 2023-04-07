@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include "config.h"
 #include "error_message.h"
@@ -17,14 +18,18 @@
 #ifdef __MINGW32__
 #include <windows.h>
 #include <Shlwapi.h>
+#include <shlobj.h>
+#include <direct.h>
 #elif __linux__
 #include <unistd.h>
 #include <libgen.h>
+#include <sys/stat.h>
 #elif __APPLE__
 #include <limits.h>
 #include <unistd.h>
 #include <mach-o/dyld.h>
 #include <libgen.h>
+#include <sys/stat.h>
 #endif
 
 extern jmp_buf jmp_buffer10;
@@ -62,38 +67,35 @@ void config_info() {
 
 void get_config_path(Config* pConfig) {
 #ifdef __MINGW32__
-	char* buffer = (char*)malloc(MAX_PATH);
-	if (buffer == NULL) {
+	pConfig->config_path = (char*)malloc(MAX_PATH);
+	if (pConfig->config_path == NULL) {
 		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
 		config_info();
 		return;
 	}
-	pConfig->config_path = (char*)malloc(MAX_PATH);
-	if (pConfig->config_path == NULL) {
-		free(buffer);
-		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
+
+	char* appdata_path = (char*)malloc(MAX_PATH);
+	if (appdata_path == NULL) {
+		free(pConfig->config_path);
+		error_message("ERROR: Can't allocate memory for appdata path. Changing the configurations won't be permanent.");
 		config_info();
 		return;
 	}
 	
-	DWORD path_size = GetModuleFileName(NULL, buffer, MAX_PATH);
-	if (path_size == 0 || path_size == MAX_PATH) {
-		free(buffer);
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, appdata_path))) {
+		char dir_path[MAX_PATH];
+		snprintf(dir_path, MAX_PATH, "%s\\Snake-by-InfinitePain", appdata_path);
+		_mkdir(dir_path);
+		snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", dir_path);
+	}
+	else {
+		error_message("ERROR: Can't get AppData folder path. Changing the configurations won't be permanent.");
+		free(appdata_path);
 		config_info();
 		return;
 	}
-	PathRemoveFileSpec(buffer);
-	char* exe_path = _strdup(buffer);
-	if (exe_path == NULL) {
-		free(buffer);
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
-		config_info();
-		return;
-	}
-	snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", exe_path);
+	free(appdata_path);
+	
 #elif __linux__
 	long path_max = pathconf("/", _PC_PATH_MAX);
 	if (path_max == -1) {
@@ -101,48 +103,27 @@ void get_config_path(Config* pConfig) {
 		config_info();
 		return;
 	}
+	
 	pConfig->config_path = (char*)malloc(path_max);
 	if (pConfig->config_path == NULL) {
 		error_message("ERROR: Can't allocate memory for path. Changing the configurations won't be permanent.");
 		config_info();
 		return;
 	}
-	char* buffer = (char*)malloc(path_max);
-	if (buffer == NULL) {
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
-		config_info();
-		return;
-	}
 	
-	ssize_t path_size  = readlink("/proc/self/exe", buffer, path_max - 1);
-	if (path_size  == -1) {
-		free(buffer);
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
+	char* home_dir = getenv("HOME");
+	if (home_dir == NULL) {
+		error_message("ERROR: Can't get home directory. Changing the configurations won't be permanent.");
 		config_info();
 		return;
 	}
-	
-	buffer[path_size] = '\0';
-	char* dir_path = dirname(buffer);
-	char* exe_path = strdup(dir_path);
-	if (exe_path == NULL) {
-		free(buffer);
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
-		config_info();
-		return;
-	}
-	snprintf(pConfig->config_path, path_max, "%s/configurations.txt", exe_path);
+	char dir_path[path_max];
+	snprintf(dir_path, path_max, "%s/.config/Snake-by-InfinitePain", home_dir);
+	mkdir(dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	snprintf(pConfig->config_path, path_max, "%s/configurations.txt", dir_path);
+
 #elif __APPLE__
 	//TODO I don't have any apple device so test if this even works
-	char* buffer = (char*)malloc(PATH_MAX);
-	if (buffer == NULL) {
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
-		config_info();
-		return;
-	}
 	pConfig->config_path = (char*)malloc(PATH_MAX);
 	if (pConfig->config_path == NULL) {
 		free(buffer);
@@ -151,23 +132,17 @@ void get_config_path(Config* pConfig) {
 		return;
 	}
 
-	uint32_t path_size = PATH_MAX;
-	if (_NSGetExecutablePath(buffer, &path_size) != 0) {
-		free(buffer);
-		free(pConfig->config_path);
-		error_message("ERROR: Can't get file path. Changing the configurations won't be permanent.");
+	char* home_dir = getenv("HOME");
+	if (home_dir == NULL) {
+		error_message("ERROR: Can't get home directory. Changing the configurations won't be permanent.");
 		config_info();
 		return;
 	}
-	char* dir_path = dirname(buffer);
-	char* exe_path = strdup(dir_path);
-	if (exe_path == NULL) {
-		free(buffer);
-		free(pConfig->config_path);
-		config_info();
-		return;
-	}
-	snprintf(pConfig->config_path, PATH_MAX, "%s/configurations.txt", exe_path);
+	char dir_path[PATH_MAX];
+	snprintf(dir_path, PATH_MAX, "%s/Library/Application Support/Snake-by-InfinitePain", home_dir);
+	mkdir(dir_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	snprintf(pConfig->config_path, PATH_MAX, "%s/configurations.txt", dir_path);
+	
 #else
 	mvprintw(error_line, 0, "ERROR: Unsupported Platform. Changing the configurations won't be permanent.\nPress any key to continue. . .");
 	refresh();
@@ -175,14 +150,7 @@ void get_config_path(Config* pConfig) {
 	getchar();
 	clear();
 #endif
-#ifdef __MINGW32__
-	snprintf(pConfig->config_path, MAX_PATH, "%s\\configurations.txt", exe_path);
-#else
-	pConfig->config_path[path_max];
-	snprintf(pConfig->config_path, path_max, "%s/configurations.txt", exe_path);
-#endif
-	free(buffer);
-	free(exe_path);
+	
 	pConfig->is_configurable = true;
 }
 

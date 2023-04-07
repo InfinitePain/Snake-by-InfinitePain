@@ -12,6 +12,7 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include "thread.h"
 #include "config.h"
@@ -19,7 +20,7 @@
 #include "mymenu.h"
 #include "snake.h"
 #include "wall.h"
-#include "menu.h"
+#include <menu.h>
 
 typedef enum GameState {
 	NOT_STARTED,

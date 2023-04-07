@@ -10,6 +10,7 @@
 #include "collision.h"
 #include "appdata.h"
 #include "food.h"
+#define NCURSES_STATIC
 #include <ncurses.h>
 #include "terminal.h"
 #include "terminal.h"

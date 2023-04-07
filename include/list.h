@@ -13,6 +13,7 @@
 #include "element.h"
 #include <stdbool.h>
 #include <pthread.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 
 typedef struct List {

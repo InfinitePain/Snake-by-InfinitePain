@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "config.h"
+#define NCURSES_STATIC
 #include <ncurses.h>
 
 #define Player_1 1

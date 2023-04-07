@@ -90,6 +90,8 @@ void destroy_thread(int thrnum) {
 		pthread_cond_destroy(&GameThreads.pause_cond[thr_main]);
 		pthread_mutex_destroy(&GameThreads.thr_mutex[mutex_win_game]);
 		pthread_mutex_destroy(&GameThreads.thr_mutex[mutex_food]);
+		pthread_mutex_destroy(&mutex_waiting_thread_count);
+		pthread_cond_destroy(&cond_waiting_thread_count);
 	}
 }
 

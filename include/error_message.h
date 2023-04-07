@@ -11,6 +11,7 @@
 #define ERROR_MESSAGE_H_
 
 #include <unistd.h>
+#define NCURSES_STATIC
 #include <ncurses.h>
 
 extern int error_line;
