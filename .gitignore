@@ -74,7 +74,7 @@ editorconfig
 configurations.txt
 Snake-by-InfinitePain changes.txt
 
-/wix/VC_redist.x64.exe
-/wix/Bundle.wixobj
-/wix/Snake-by-InfinitePain_Installer.wixpdb
-/wix/Snake-by-InfinitePain-Windows_Installer.wixpdb
+Installers/wix/VC_redist.x64.exe
+Installers/wix/Bundle.wixobj
+Installers/wix/Snake-by-InfinitePain_Installer.wixpdb
+Installers/wix/Snake-by-InfinitePain-Windows_Installer.wixpdb

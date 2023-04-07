@@ -71,7 +71,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     "/.vscode/"
     "/.devcontainer/"
     "/out/"
-    "/wix/"
+    "/Installers/"
     "~$"
     ".DS_Store$"
     ".swp$"
