@@ -140,7 +140,7 @@ bool is_key_reverse(int key, int dir) {
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
 	jmp_buf jmp_buffer9;
-	int key;
+	int key, next_key;
 	int thrnum = get_thrnum(pthread_self());
 	double desired_sleep_time, loop_start_time, loop_end_time, time_spent, time_to_sleep;
 	while (GameThreads.is_thr_init[thrnum]) {
@@ -157,6 +157,9 @@ void* snake_thread(void* args) {
 				break;
 			}
 			decrement_waiting_thread_count();
+			if (buffer_peek(&pSnake->dir_buffer) != -1) {
+				key = buffer_pop(&pSnake->dir_buffer);
+			}
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		if (GAME_STATE == QUIT) {
@@ -164,9 +167,11 @@ void* snake_thread(void* args) {
 		}
 
 		if (setjmp(jmp_buffer9) != 1) {
-			int next_key = buffer_pop(&pSnake->dir_buffer); // Get and remove the next direction from the buffer
-			if (next_key != -1 && !is_key_reverse(next_key, key)) {
-				key = next_key;
+			if (buffer_peek(&pSnake->dir_buffer) != -1) {
+				next_key = buffer_pop(&pSnake->dir_buffer);
+				if (!is_key_reverse(next_key, key)) {
+					key = next_key;
+				}
 			}
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 			list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appWindows[GAME_WIN]);
