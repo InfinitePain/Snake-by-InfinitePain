@@ -78,3 +78,6 @@ editorconfig
 .ninja_log
 
 configurations.txt
+Snake-by-InfinitePain changes.txt
+
+/wix/VC_redist.x64.exe
