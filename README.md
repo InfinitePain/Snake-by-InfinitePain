@@ -23,6 +23,14 @@ Arch Linux:
 
 A PKGBUILD will be provided for Arch Linux users. More details coming soon.
 
+## Configuration File
+
+The game stores its configuration settings in a file that is created in the following locations:
+
+Windows: %APPDATA%\Snake-by-InfinitePain\configurations.txt
+Linux: ~/.config/Snake-by-InfinitePain/configurations.txt
+macOS: ~/Library/Application Support/Snake-by-InfinitePain/configurations.txt
+
 ## License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE.txt](LICENSE.txt) file for details.
@@ -40,6 +48,10 @@ The full license texts for these libraries can be found in the respective subfol
 ## GCC Runtime Library Exception
 
 This project links the GCC runtime libraries statically, as permitted by the GCC Runtime Library Exception. For more information about the exception, please refer to the [GCC Runtime Library Exception](https://www.gnu.org/licenses/gcc-exception-3.1.en.html) provided by the Free Software Foundation.
+
+## Changelog
+
+For a detailed list of changes in each version, please refer to the [changelog](changelog.md).
 
 ## Distribution
 
