@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -O3")
 
-project(Snake-by-InfinitePain VERSION 1.1.0)
+project(Snake-by-InfinitePain VERSION 1.1.1)
 
 # Set the output directory for the binary file
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/)

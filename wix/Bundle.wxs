@@ -1,7 +1,10 @@
+<?define ProductVersion = "1.1.1" ?>
+<?define InstallerName = "Snake-by-InfinitePain-$(var.ProductVersion)-Windows_Installer.msi" ?>
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
   <Bundle Name="Snake-by-InfinitePain_Installer"
-          Version="1.0.0"
+          Version="$(var.ProductVersion)"
           Manufacturer="InfinitePain"
           UpgradeCode="46a4c87c-8cf6-49f0-917b-2513df9e5714">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
@@ -21,7 +24,7 @@
                   InstallCondition="NOT VCRedistInstalled" />
 
       <MsiPackage Id="Snake_by_InfinitePain"
-                  SourceFile="../out/build/W-x64-r-GCC-N/Snake-by-InfinitePain-1.0.0-Windows_Installer.msi" />
+                  SourceFile="../out/build/W-x64-r-GCC-N/$(var.InstallerName)" />
     </Chain>
   </Bundle>
 </Wix>
