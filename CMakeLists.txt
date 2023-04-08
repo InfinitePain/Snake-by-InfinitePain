@@ -111,5 +111,5 @@ install(DIRECTORY ${EXTERNAL_LIB_DIR}/ncurses DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
 	install(DIRECTORY ${EXTERNAL_LIB_DIR}/pthread DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
-	include(CPack)
 endif()
+include(CPack)
