@@ -76,6 +76,9 @@ set(CPACK_SOURCE_IGNORE_FILES
     ".DS_Store$"
     ".swp$"
 )
+if(UNIX)
+set(CPACK_SOURCE_IGNORE_FILES) "/external/")
+endif()
 
 set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 
