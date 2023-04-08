@@ -2,6 +2,60 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
+## [1.1.10] - 2023-04-08
+
+### Fixed
+
+- Refactored error_message and read_config functions to address compiler warnings
+
+## [1.1.9] - 2023-04-08
+
+### Fixed
+
+- Fixed a typo in CMakeLists.txt for appending CPACK_SOURCE_IGNORE_FILES
+
+## [1.1.8] - 2023-04-08
+
+### Fixed
+
+- Fixed a typo in the license file name in CMakeLists.txt
+
+## [1.1.7] - 2023-04-08
+
+### Changed
+
+- Removed external library installation from CMakeLists.txt for Linux systems
+
+## [1.1.6] - 2023-04-08
+
+### Fixed
+
+- Fixed a syntax error in CMakeLists.txt for CPACK_SOURCE_IGNORE_FILES
+
+## [1.1.5] - 2023-04-08
+
+### Changed
+
+- Updated CMakeLists.txt to ignore additional files and use a conditional block for UNIX systems
+
+## [1.1.4] - 2023-04-08
+
+### Fixed
+
+- Fixed the path in bundle.wxs for MsiPackage SourceFile
+
+## [1.1.3] - 2023-04-08
+
+### Changed
+
+- Removed -O3 optimization flag from CMakeLists.txt to improve cross-platform compatibility
+
+## [1.1.2] - 2023-04-07
+
+### Changed
+
+- Updated CMakeLists.txt to set CPACK_PACKAGE_FILE_NAME and CPACK_SOURCE_PACKAGE_FILE_NAME for better packaging
+
 ## [1.1.1] - 2023-04-07
 
 ### Added

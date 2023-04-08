@@ -224,9 +224,14 @@ Config* read_config() {
 		write_config(pConfig);
 		return pConfig;
 	}
-	for (int i = 0; i < NUM_CONFIGS; i++) {
-		fscanf(configurations, "%*[^=]=%i\n", &pConfig->configs[i]);
-	}
+    for (int i = 0; i < NUM_CONFIGS; i++) {
+        int result = fscanf(configurations, "%*[^=]=%i\n", &pConfig->configs[i]);
+        if (result == EOF || result != 1) {
+			init_config_default(pConfig);
+			write_config(pConfig);
+			break;
+        }
+    }
 	fclose(configurations);
 	return pConfig;
 }

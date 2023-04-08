@@ -21,7 +21,7 @@ void error_message(const char* message) {
 	char buf[BUFSIZ];
 	snprintf(buf, sizeof(buf), "%s: %s", message, strerror(errno));
 	strerror(errno);
-	mvprintw(error_line, 0, buf);
+	mvprintw(error_line, 0, "%s", buf);
 	refresh();
 	error_line++;
 	sleep(1);

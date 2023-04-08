@@ -1,4 +1,4 @@
-<?define ProductVersion = "1.1.1" ?>
+<?define ProductVersion = "1.1.10" ?>
 <?define InstallerName = "Snake-by-InfinitePain-$(var.ProductVersion)-Windows_Installer.msi" ?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
