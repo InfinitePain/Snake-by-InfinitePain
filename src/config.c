@@ -202,7 +202,7 @@ void init_config_default(Config* pConfig) {
 	pConfig->configs[SNAKE_LENGTH] = 10;
 	pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] = 1;
 	pConfig->configs[FOOD_AMOUNT_MULTIPLAYER] = 2;
-	pConfig->configs[GAME_SPEED] = 4;
+	pConfig->configs[GAME_SPEED] = 7;
 	pConfig->configs[MAX_POINT] = 0;
 	//TODO if you add more configs, adjust this
 }
