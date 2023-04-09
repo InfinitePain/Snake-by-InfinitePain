@@ -19,31 +19,75 @@
 extern jmp_buf jmp_buffer10;
 jmp_buf jmp_buffer12;
 
+void delete_available_positions(AvailablePositions* ap) {
+	if (ap == NULL) {
+		return;
+	}
+	free(ap->positions);
+	free(ap);
+}
+
+AvailablePositions* create_available_positions() {
+	AvailablePositions* ap = (AvailablePositions*)malloc(sizeof(AvailablePositions));
+	if (ap == NULL) {
+		error_message("ERROR: func create_available_positions(): malloc");
+		longjmp(jmp_buffer10, 1);
+	}
+	int width = getmaxx(appWindows[GAME_WIN]);
+	int height = getmaxy(appWindows[GAME_WIN]);
+	int max_positions = (width - 2) * (height - 2);
+	ap->positions = (Position*)malloc(max_positions * sizeof(Position));
+	if (ap->positions == NULL) {
+		error_message("ERROR: func create_available_positions(): malloc");
+		longjmp(jmp_buffer10, 1);
+	}
+	ap->count = 0;
+
+	for (int x = 1; x < width - 1; x++) {
+		for (int y = 1; y < height - 1; y++) {
+			Position pos = { x, y };
+			ap->positions[ap->count++] = pos;
+		}
+	}
+	return ap;
+}
+
+void remove_position(AvailablePositions* ap, int x, int y) {
+	if (ap == NULL) {
+		return;
+	}
+	for (int i = 0; i < ap->count; i++) {
+		if (ap->positions[i].posx == x && ap->positions[i].posy == y) {
+			for (int j = i; j < ap->count - 1; j++) {
+				ap->positions[j] = ap->positions[j + 1];
+			}
+			ap->count--;
+			return;
+		}
+	}
+}
+
+void add_position(AvailablePositions* ap, int x, int y) {
+	if (ap == NULL) {
+		return;
+	}
+	Position pos = { x, y };
+	ap->positions[ap->count++] = pos;
+}
+
 void delete_foods() {
 	delete_list(appArgs.pFood_Main);
 	free(appArgs.pFood_Multiplayer);
 	free(appArgs.pFood_Single_Player);
 }
 
-void random_coordinate_generator(int* x, int* y) {
-	*x = (rand() % (getmaxx(appWindows[GAME_WIN]) - 2)) + 1;
-	*y = (rand() % (getmaxy(appWindows[GAME_WIN]) - 2)) + 1;
-}
-
-bool food_coordinate_checker(List* pList, int x, int y) {
-	if (pList == NULL) {
-		return false;
+void get_random_position(AvailablePositions* ap, int* x, int* y) {
+	if (ap == NULL) {
+		return;
 	}
-	Element* curr = pList->head;
-	while (curr != NULL) {
-		if (x == curr->pos.posx || y == curr->pos.posy)
-		{
-			return true;
-		}
-		curr = curr->next;
-	}
-
-	return false;
+	int index = rand() % ap->count;
+	*x = ap->positions[index].posx;
+	*y = ap->positions[index].posy;
 }
 
 Element* food_adresser(List* pList) {
@@ -62,14 +106,42 @@ Element* food_adresser(List* pList) {
 void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
 	int x, y;
 	Element* curr = food_adresser(pFood);
-	while (curr != NULL) {
-		random_coordinate_generator(&x, &y);
-		while (food_coordinate_checker(pFood, x, y) || food_coordinate_checker(pSnake1->pos_snake, x, y) || (pSnake2 != NULL && food_coordinate_checker(pSnake2->pos_snake, x, y))) {
-			random_coordinate_generator(&x, &y);
+	if (curr == NULL) {
+		return;
+	}
+	
+	Element* currSnake = pSnake1->pos_snake->head;
+	while (currSnake != NULL) {
+		remove_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
+		currSnake = currSnake->next;
+	}
+	if (GAME_MODE == MULTIPLAYER) {
+		currSnake = pSnake2->pos_snake->head;
+		while (currSnake != NULL) {
+			remove_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
+			currSnake = currSnake->next;
 		}
+	}
+	
+	while (curr != NULL) {
+		get_random_position(appArgs.pAvailablePositions, &x, &y);
+		remove_position(appArgs.pAvailablePositions, x, y);
 		curr->pos.posx = x;
 		curr->pos.posy = y;
 		curr = food_adresser(pFood);
+	}
+	
+	currSnake = pSnake1->pos_snake->head;
+	while (currSnake != NULL) {
+		add_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
+		currSnake = currSnake->next;
+	}
+	if (GAME_MODE == MULTIPLAYER) {
+		currSnake = pSnake2->pos_snake->head;
+		while (currSnake != NULL) {
+			add_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
+			currSnake = currSnake->next;
+		}
 	}
 }
 
@@ -100,7 +172,6 @@ void resize_foods() {
 	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
     make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER]);
 }
-
 
 void init_foods() {
 	appArgs.pFood_Main = create_list();
