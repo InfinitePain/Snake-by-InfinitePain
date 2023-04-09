@@ -2,6 +2,19 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
+## [1.2.0] - 2023-04-09
+
+### Added
+
+- Added AvailablePositions struct to manage available positions for food generation
+
+### Changed
+
+- Refactored food generation process to use AvailablePositions
+- Changed default GAME_SPEED from 4 to 7
+- Refactored int_value_changer function in mymenu.c for improved code readability and maintainability
+- Updated print_info_enter and print_info_ud_arrow functions in mymenu.c to use safe string formatting
+
 ## [1.1.10] - 2023-04-08
 
 ### Fixed
