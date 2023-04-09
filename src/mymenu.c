@@ -285,65 +285,70 @@ void int_value_changer(MENU* menu) {
 	int key = -1;
 	int value = appArgs.pConfig->configs[index];
 	char buffer[10];
+
 	while ((key = wgetch(appWindows[MENU_WIN])) != '\n' && key != 27 && key != 34 && key != 94) {
 		switch (key) {
 		case KEY_DOWN:
-			value--;
-			if (value == 17) {
-				value = 300;
-			}
-			snprintf(buffer, 10, "%9d", value);
-			strcpy(settings_menu_descriptions[index], buffer);
-			item->description.str = settings_menu_descriptions[index];
-			unpost_menu(menu);
-			post_menu(menu);
-			break;
 		case KEY_UP:
-			value++;
-			if (value == 301) {
-				value = 18;
+		case KEY_LEFT:
+		case KEY_RIGHT:
+			int increment = (key == KEY_UP || key == KEY_RIGHT) ? 1 : -1;
+			if (key == KEY_LEFT || key == KEY_RIGHT) increment *= 10;
+			if (index == SCREEN_WIDTH || index == SCREEN_HEIGHT) {
+				value += increment;
+
+				int min_value = (index == SCREEN_WIDTH) ? 29 : 14;
+				int max_value = (index == SCREEN_WIDTH) ? 300 : 80;
+
+				if (value < min_value) value = max_value;
+				if (value > max_value) value = min_value;
 			}
-			snprintf(buffer, 10, "%9d", value);
+			else if (index == SNAKE_LENGTH) {
+				value += increment;
+
+				value = (value < 2) ? 50 : value;
+				value = (value > 50) ? 2 : value;
+			}
+			else if (index == FOOD_AMOUNT_SINGLE_PLAYER || index == FOOD_AMOUNT_MULTIPLAYER) {
+				value += increment;
+
+				value = (value < 1) ? 100 : value;
+				value = (value > 100) ? 1 : value;
+			}
+			if (index == GAME_SPEED) {
+				int display_value = 11 - value;
+				display_value += increment;
+
+				display_value = (display_value < 1) ? 10 : display_value;
+				display_value = (display_value > 10) ? 1 : display_value;
+				value = 11 - display_value;
+			}
+			if (index == GAME_SPEED) {
+				snprintf(buffer, sizeof(buffer), "%*d", 9, 11 - value);
+			}
+			else {
+				snprintf(buffer, sizeof(buffer), "%*d", 9, value);
+			}
 			strcpy(settings_menu_descriptions[index], buffer);
 			item->description.str = settings_menu_descriptions[index];
 			unpost_menu(menu);
 			post_menu(menu);
 			break;
-			case KEY_LEFT:
-				value -= 10;
-				if (value == 17) {
-					value = 300;
-				}
-				snprintf(buffer, 10, "%9d", value);
-				strcpy(settings_menu_descriptions[index], buffer);
-				item->description.str = settings_menu_descriptions[index];
-				unpost_menu(menu);
-				post_menu(menu);
-				break;
-			case KEY_RIGHT:
-				value += 10;
-				if (value == 301) {
-					value = 18;
-				}
-				snprintf(buffer, 10, "%9d", value);
-				strcpy(settings_menu_descriptions[index], buffer);
-				item->description.str = settings_menu_descriptions[index];
-				unpost_menu(menu);
-				post_menu(menu);
-				break;
 		}
 	}
+
 	if (key == '\n') {
 		appArgs.pConfig->configs[index] = value;
 	}
 	else {
-		snprintf(buffer, 10, "%9d", appArgs.pConfig->configs[index]);
+		snprintf(buffer, sizeof(buffer), "%*d", 9, appArgs.pConfig->configs[index]);
 		strcpy(settings_menu_descriptions[index], buffer);
 		item->description.str = settings_menu_descriptions[index];
 		unpost_menu(menu);
 		post_menu(menu);
 	}
 }
+
 
 void key_value_changer(MENU* menu) {
 	ITEM* item = current_item(menu);
@@ -575,14 +580,14 @@ void erase_info() {
 void print_info_enter(int x, char* text) {
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+1, ACS_LARROW);
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+2, ACS_LRCORNER);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, text);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, "%s", text);
 }
 
 void print_info_ud_arrow(int x, char* text) {
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x, ACS_UARROW);
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+1, '/');
 	mvwaddch(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+2, ACS_DARROW);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, text);
+	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, x+4, "%s", text);
 }
 
 void menu_info() {
