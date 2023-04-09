@@ -26,6 +26,7 @@ appData appArgs = {
 	.pFood_Main = NULL,
 	.pFood_Multiplayer = NULL,
 	.pFood_Single_Player = NULL,
+	.pAvailablePositions = NULL,
 };
 
 void init_appData() {
@@ -47,6 +48,7 @@ void init_appData() {
 	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
 	set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	init_foods();
+	appArgs.pAvailablePositions = create_available_positions();
 	create_thread(thr_food);
 	create_thread(thr_collision);
 }
@@ -63,6 +65,7 @@ void destroy_appData() {
 	destroy_thread(thr_snake2);
 	delete_snake(appArgs.pSnake2);
 	destroy_thread(thr_food);
+	delete_available_positions(appArgs.pAvailablePositions);
 	delete_foods();
 	destroy_thread(thr_collision);
 	destroy_thread(thr_main);
