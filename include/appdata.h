@@ -21,6 +21,7 @@
 #include "snake.h"
 #include "wall.h"
 #include <menu.h>
+#include "food.h"
 
 typedef enum GameState {
 	NOT_STARTED,
@@ -49,6 +50,7 @@ typedef struct appData {
 	List* pFood_Main;
 	List* pFood_Multiplayer;
 	List* pFood_Single_Player;
+	AvailablePositions* pAvailablePositions;
 } appData;
 
 extern appData appArgs;
