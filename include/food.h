@@ -14,9 +14,17 @@
 #include "list.h"
 #include "snake.h"
 
+typedef struct AvailablePositions {
+	Position* positions;
+	int count;
+} AvailablePositions;
+
+void delete_available_positions(AvailablePositions* ap);
+AvailablePositions* create_available_positions();
+void remove_position(AvailablePositions* ap, int x, int y);
+void add_position(AvailablePositions* ap, int x, int y);
 void delete_foods();
-void random_coordinate_generator(int* x, int* y);
-bool food_coordinate_checker(List* pList, int x, int y);
+void get_random_position(AvailablePositions* ap, int* x, int* y);
 Element* food_adresser(List* pList);
 void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2);
 void reset_food(List* pFood);
