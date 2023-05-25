@@ -12,9 +12,7 @@
 #include "error_message.h"
 #include "appdata.h"
 #include "terminal.h"
-
-jmp_buf jmp_buffer7;
-extern jmp_buf jmp_buffer10;
+#include "app_status.h"
 
 List* create_wall()
 {
@@ -26,32 +24,37 @@ List* create_wall()
 	if (pList == NULL)
 	{
 		error_message("ERROR: func create_wall(): create_list() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 
-	if (setjmp(jmp_buffer7) != 1)
+	Element* curr1, * curr2;
+	for (int x = x_start; x < x_end; x++)
 	{
-		for (int x = x_start; x < x_end; x++)
+		curr1 = create_element(x, y_start);
+		curr2 = create_element(x, y_end - 1);
+		if (curr1 == NULL || curr2 == NULL)
 		{
-			add_element_to_head(pList, create_element(x, y_start, 7));
-			add_element_to_head(pList, create_element(x, y_end - 1, 7));
+			error_message("ERROR: func create_wall(): create_element() failed");
+			GAME_STATE = CRITICAL_ERROR;
+			return NULL;
+		}
+		add_element_to_head(pList, curr1);
+		add_element_to_head(pList, curr2);
 
-		}
-		for (int y = y_start; y < y_end; y++)
-		{
-			add_element_to_head(pList, create_element(x_start, y, 7));
-			add_element_to_head(pList, create_element(x_end - 1, y, 7));
-		}
 	}
-	else
+	for (int y = y_start; y < y_end; y++)
 	{
-		error_message("ERROR: func create_wall(): create_element() failed");
-		longjmp(jmp_buffer10, 1);
+		curr1 = create_element(x_start, y);
+		curr2 = create_element(x_end - 1, y);
+		if (curr1 == NULL || curr2 == NULL)
+		{
+			error_message("ERROR: func create_wall(): create_element() failed");
+			GAME_STATE = CRITICAL_ERROR;
+			return NULL;
+		}
+		add_element_to_head(pList, curr1);
+		add_element_to_head(pList, curr2);
 	}
 	return pList;
 }
-
-
-
-
-
