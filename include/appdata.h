@@ -22,26 +22,6 @@
 #include "wall.h"
 #include <menu.h>
 #include "food.h"
-
-typedef enum GameState {
-	NOT_STARTED,
-	STARTED,
-	GAME_OVER,
-	SETTINGS,
-	QUIT,
-	CRITICAL_ERROR,
-} GameState;
-
-
-typedef enum GameMode {
-	NOT_SELECTED,
-	SINGLE_PLAYER,
-	MULTIPLAYER
-} GameMode;
-
-extern GameState GAME_STATE;
-extern GameMode GAME_MODE;
-
 typedef struct appData {
 	Config* pConfig;
 	List* pWall;
