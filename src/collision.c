@@ -15,12 +15,16 @@
 #include "terminal.h"
 #include "terminal.h"
 #include "timing_utils.h"
+#include "app_status.h"
 
 bool game_timer_needs_reset = false;
 bool score_changed = true;
 bool time_changed = true;
 
 bool is_snake_collided(Snake* pSnake) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return true;
+	}
 	Element* pElement = pSnake->pos_snake->head->next;
 	while (pElement != NULL) {
 		if (pElement->pos.posx == pSnake->pos_snake->head->pos.posx && pElement->pos.posy == pSnake->pos_snake->head->pos.posy) {
@@ -31,14 +35,23 @@ bool is_snake_collided(Snake* pSnake) {
 	return false;
 }
 
-bool is_snake_collided_with_wall(Snake* pSnake) {
-	if (pSnake->pos_snake->head->pos.posx == 0 || pSnake->pos_snake->head->pos.posx == getmaxx(appWindows[GAME_WIN]) - 1 || pSnake->pos_snake->head->pos.posy == 0 || pSnake->pos_snake->head->pos.posy == getmaxy(appWindows[GAME_WIN]) - 1) {
+bool is_snake_collided_with_wall(Snake* pSnake, int width, int height) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return true;
+	}
+	if (pSnake->pos_snake->head->pos.posx == 0 || pSnake->pos_snake->head->pos.posx == width - 1 || pSnake->pos_snake->head->pos.posy == 0 || pSnake->pos_snake->head->pos.posy == height - 1) {
 		return true;
 	}
 	return false;
 }
 
 bool is_snake_collided_with_snake(Snake* pSnake1, Snake* pSnake2) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return true;
+	}
+	if (pSnake1 == pSnake2) {
+		return false;
+	}
 	Element* pElement = pSnake2->pos_snake->head;
 	while (pElement != NULL) {
 		if (pElement->pos.posx == pSnake1->pos_snake->head->pos.posx && pElement->pos.posy == pSnake1->pos_snake->head->pos.posy) {
@@ -50,6 +63,9 @@ bool is_snake_collided_with_snake(Snake* pSnake1, Snake* pSnake2) {
 }
 
 Element* get_collided_food_element(List* pFood, Snake* pSnake) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	Element* pElementFood = pFood->head;
 	while (pElementFood != NULL) {
 		if (pElementFood->pos.posx == pSnake->pos_snake->head->pos.posx && pElementFood->pos.posy == pSnake->pos_snake->head->pos.posy) {
@@ -62,6 +78,9 @@ Element* get_collided_food_element(List* pFood, Snake* pSnake) {
 }
 
 void handle_food_collision(Element* collided_food, Snake* pSnake) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	if (collided_food != NULL) {
 		collided_food->pos.posx = -1;
 		collided_food->pos.posy = -1;
@@ -99,7 +118,7 @@ void game_over() {
 
 bool collision_snake(Snake* pSnake) {
 	bool is_collided = false;
-	if (is_snake_collided(pSnake) || is_snake_collided_with_wall(pSnake)) {
+	if (is_snake_collided(pSnake) || is_snake_collided_with_wall(pSnake, getmaxx(appWindows[GAME_WIN]), getmaxy(appWindows[GAME_WIN])) || is_snake_collided_with_snake(pSnake, appArgs.pSnake1) || is_snake_collided_with_snake(pSnake, appArgs.pSnake2)) {
 		pSnake->is_alive = false;
 		is_collided = true;
 	}
@@ -107,6 +126,7 @@ bool collision_snake(Snake* pSnake) {
 }
 
 void collision_food() {
+	
 	Element* collided_food = NULL;
 	bool is_food_eaten = false;
 	switch (GAME_MODE) {
@@ -163,6 +183,10 @@ void print_time(double elapsed_time) {
 
 void print_score() {
 	if (score_changed) {
+		for (int i = 1; i < appArgs.pConfig->configs[SCREEN_WIDTH] / 2 - 5; i++) {
+			mvwaddch(stdscr, 1, i, ' ');
+			mvwaddch(stdscr, 2, i, ' ');
+		}
 		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 		switch (GAME_MODE) {
 		case SINGLE_PLAYER:
@@ -195,6 +219,7 @@ void* collision_thread(void* arg) {
 			decrement_waiting_thread_count();
 			pause_total_time += get_current_time_in_seconds() - pause_start_time;
 			is_collided = false;
+			score_changed = true;
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_collision]);
 		if (GAME_STATE == QUIT) {
