@@ -13,7 +13,9 @@ configure_file(${PROJECT_SOURCE_DIR}/CMakeProjectConfig.h.in CMakeProjectConfig.
 # Set up source directories and files
 include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB SOURCES "src/*.c")
-add_executable(${PROJECT_NAME} ${SOURCES})
+list(FILTER SOURCES EXCLUDE REGEX "src/snakebyip.c$")
+set(MAIN_SOURCE "src/snakebyip.c")
+add_executable(${PROJECT_NAME} ${MAIN_SOURCE} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR})
 
 # Add any additional libraries
@@ -54,6 +56,25 @@ endif()
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/CMakeProjectConfig.h" DESTINATION include)
 
+# Set up testing
+include(CTest)
+set(CTEST_OUTPUT_ON_FAILURE 1)
+if(BUILD_TESTING)
+    file(GLOB TEST_SOURCES "tests/test_*.c")
+    foreach(test_src ${TEST_SOURCES})
+        get_filename_component(test_name ${test_src} NAME_WE)
+        add_executable(${test_name} ${test_src} ${SOURCES})
+		if(WIN32)
+		target_link_libraries(${test_name} PUBLIC ${MENU_LIBRARY} ${NCURSES_LIBRARY} ${PTHREAD_LIBRARY} ${SHLWAPI_LIBRARY} ${SHELL32_LIBRARY} libcheck)
+		else()
+		set(CHECK_LIBRARY check)
+		find_library(CHECK_LIBRARY NAMES check)
+		target_link_libraries(${test_name} PUBLIC ${MENU_LIBRARY} ${NCURSES_LIBRARY} ${PTHREAD_LIBRARY} ${CHECK_LIBRARY} m rt pthread)
+		endif()
+        add_test(NAME ${test_name} COMMAND ${test_name})
+    endforeach()
+endif()
+
 # Set up packaging
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
@@ -75,6 +96,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     "~$"
     ".DS_Store$"
     ".swp$"
+	"/external/Windows/check/"
 )
 if(UNIX)
 	list(APPEND CPACK_SOURCE_IGNORE_FILES "/external/")
@@ -112,4 +134,5 @@ install(DIRECTORY ${EXTERNAL_LIB_DIR}/ncurses DESTINATION external
 	install(DIRECTORY ${EXTERNAL_LIB_DIR}/pthread DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
 endif()
+
 include(CPack)
