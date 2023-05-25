@@ -24,15 +24,15 @@ typedef struct Snake {
 	int grow;
 	int point;
 	DirectionBuffer dir_buffer;
-	int* color;
+	int color;
 } Snake;
 
 void delete_snake(Snake* pSnake);
 void set_snake_position(Snake* pSnake, int x, int y);
-Snake* create_snake();
-Element* create_element_snake(int x, int y, jmp_buf jmp_buffer);
+Snake* create_snake(int length, int color, int direction, int startx, int starty);
+void set_snake_color(Snake* pSnake, int color);
 void restart_snake(Snake* pSnake);
-void move_snake(const Config* pConfig, int direction, Snake* pSnake, jmp_buf jmp_buffer9);
+void move_snake(const Config* pConfig, int direction, Snake* pSnake);
 bool is_key_reverse(int key, int dir);
 void* snake_thread(void* args);
 
