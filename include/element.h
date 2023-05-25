@@ -18,7 +18,7 @@ typedef struct Element {
 	struct Element* next;
 } Element;
 
-Element* create_element(const int posx, const int posy, int purpose);
+Element* create_element(const int posx, const int posy);
 void printer_element(const Element* pElement, const int color, const int time);
 
 #endif /* ELEMENT_H_ */
