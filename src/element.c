@@ -14,33 +14,16 @@
 #include <ncurses.h>
 #include <setjmp.h>
 #include <time.h>
+#include "app_status.h"
 
-extern jmp_buf jmp_buffer3;
-extern jmp_buf jmp_buffer7;
-extern jmp_buf jmp_buffer12;
-
-
-/*
-3 for list_copy
-7 for the wall functions
-12 for init_food
-*/
-Element* create_element(const int posx, const int posy, int purpose) {
+Element* create_element(const int posx, const int posy) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	Element* pElement = (Element*)malloc(sizeof(Element));
 	if (pElement == NULL) {
 		error_message("ERROR: func create_element(): malloc");
-		switch (purpose)
-		{
-		case 3:
-			longjmp(jmp_buffer3, 1);
-			break;
-		case 7:
-			longjmp(jmp_buffer7, 1);
-			break;
-		case 12:
-			longjmp(jmp_buffer12, 1);
-			break;
-		}
+		GAME_STATE = CRITICAL_ERROR;
 		return NULL;
 	}
 	pElement->pos.posx = posx;
@@ -51,6 +34,9 @@ Element* create_element(const int posx, const int posy, int purpose) {
 }
 
 void printer_element(const Element* pElement, const int color, const int time) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	attron(COLOR_PAIR(color));
 	usleep(time);
 	mvaddch(pElement->pos.posy, pElement->pos.posx, ' ');
