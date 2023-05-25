@@ -15,8 +15,7 @@
 #include <mymenu.h>
 #include "food.h"
 #include "collision.h"
-
-extern jmp_buf jmp_buffer10;
+#include "app_status.h"
 
 int waiting_thread_count = 0;
 pthread_mutex_t mutex_waiting_thread_count = PTHREAD_MUTEX_INITIALIZER;
@@ -96,13 +95,16 @@ void destroy_thread(int thrnum) {
 }
 
 void create_thread(int thrnum) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	switch (thrnum) {
 	case thr_input1:
 		GameThreads.is_thr_init[thr_input1] = true;
 		if (pthread_create(&GameThreads.thr[thr_input1], NULL, &input_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_input1] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_input2:
@@ -110,7 +112,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_input2], NULL, &input_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_input2] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_menu:
@@ -118,7 +120,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_menu], NULL, &menu_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_menu] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_snake1:
@@ -126,7 +128,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_snake1], NULL, &snake_thread, appArgs.pSnake1) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_snake1] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_snake2:
@@ -134,7 +136,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_snake2], NULL, &snake_thread, appArgs.pSnake2) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_snake2] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_collision:
@@ -142,7 +144,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_collision], NULL, &collision_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_collision] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	case thr_food:
@@ -150,7 +152,7 @@ void create_thread(int thrnum) {
 		if (pthread_create(&GameThreads.thr[thr_food], NULL, &food_thread, NULL) != 0) {
 			error_message("ERROR: func create_thread: pthread_create");
 			GameThreads.is_thr_init[thr_food] = false;
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
 		}
 		break;
 	}
