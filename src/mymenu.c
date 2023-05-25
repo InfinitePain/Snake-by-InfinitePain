@@ -16,9 +16,7 @@
 #include "terminal.h"
 #include "food.h"
 #include "collision.h"
-
-extern jmp_buf jmp_buffer10;
-jmp_buf jmp_buffer11;
+#include "app_status.h"
 
 MENU* game_menus[3];
 char* main_menu_names[4] = {
@@ -135,6 +133,7 @@ void delete_menu(int index) {
 		if (items != NULL) {
 			for (int i = 0; i < item_count(game_menus[index]); i++) {
 				free_item(items[i]);
+				items[i] = NULL;
 			}
 		}
 		free_menu(game_menus[index]);
@@ -158,35 +157,28 @@ void delete_menus() {
 	}
 }
 
-void set_menu_attr(MENU* menu) {
-	int width, height;
-	set_menu_win(menu, appWindows[MENU_WIN]);
-	width = getmaxx(appWindows[MENU_WIN]);
-	height = getmaxy(appWindows[MENU_WIN]);
-	WINDOW* subwindow = NULL;
-	subwindow = derwin(appWindows[MENU_WIN], height - 4, width - 2, 3, 1);
-	if (subwindow == NULL) {
-		error_message("ERROR: func set_menu_attr: derwin() failed");
-		longjmp(jmp_buffer10, 1);
-	}
-	set_menu_sub(menu, subwindow);
-	set_menu_mark(menu, "");
-	set_menu_format(menu, height - 4, 1);
-}
-
 ITEM* create_item(char* string1, char* string2) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	ITEM* item = new_item(string1, string2);
 	if (item == NULL) {
-		longjmp(jmp_buffer11, 1);
+		error_message("ERROR: func create_item: new_item() failed");
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	return item;
 }
 
 MENU* create_menu(ITEM** items) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	MENU* menu = new_menu(items);
 	if (menu == NULL) {
 		error_message("ERROR: func create_menu: new_menu() failed");
-		longjmp(jmp_buffer11, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	return menu;
 }
@@ -199,39 +191,47 @@ void free_items(ITEM** items, int n_choices) {
 }
 
 WINDOW* create_subwindow(WINDOW* parent, int height_offset, int width_offset, int y_offset, int x_offset) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	int width, height;
 	getmaxyx(parent, height, width);
 	WINDOW* subwindow = derwin(parent, height - height_offset, width - width_offset, y_offset, x_offset);
 	if (subwindow == NULL) {
 		error_message("ERROR: func create_subwindow: derwin() failed");
-		longjmp(jmp_buffer11, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	return subwindow;
 }
 
 MENU* create_game_menu(char* choices1[], char* choices2[], void* funcs[], int n_choices) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	MENU* menu = NULL;
 	ITEM** items = (ITEM**)calloc(n_choices + 1, sizeof(ITEM*));
 	if (items == NULL) {
-		longjmp(jmp_buffer10, 1);
+		error_message("ERROR: func create_game_menu: calloc() failed");
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
-	if (setjmp(jmp_buffer11) != 1) {
-		for (int i = 0; i < n_choices; i++) {
-			items[i] = create_item(choices1[i], choices2 ? choices2[i] : NULL);
-		}
-		menu = create_menu(items);
-		set_menu_win(menu, appWindows[MENU_WIN]);
-		WINDOW* subwindow = create_subwindow(appWindows[MENU_WIN], 4, 2, 3, 1);
-		set_menu_sub(menu, subwindow);
-		set_menu_sub(menu, subwindow);
-		set_menu_mark(menu, "");
-		set_menu_format(menu, getmaxy(subwindow), 1);
+	for (int i = 0; i < n_choices; i++) {
+		items[i] = create_item(choices1[i], choices2 ? choices2[i] : NULL);
 	}
-	else {
+	menu = create_menu(items);
+	set_menu_win(menu, appWindows[MENU_WIN]);
+	WINDOW* subwindow = create_subwindow(appWindows[MENU_WIN], 4, 2, 3, 1);
+
+	if (GAME_STATE == CRITICAL_ERROR) {
 		free_items(items, n_choices);
 		free_menu(menu);
-		longjmp(jmp_buffer10, 1);
+		return NULL;
 	}
+	set_menu_sub(menu, subwindow);
+	set_menu_sub(menu, subwindow);
+	set_menu_mark(menu, "");
+	set_menu_format(menu, getmaxy(subwindow), 1);
 	for (int i = 0; i < n_choices; i++) {
 		set_item_userptr(items[i], funcs[i]);
 	}
@@ -479,6 +479,9 @@ void config_value_to_string(int config_index) {
 }
 
 void get_settings_item_strings(char** item_names, char** item_descriptions) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	for (int i = 0; i < NUM_CONFIGS - 1; i++) {
 		item_names[i] = NULL;
 		item_descriptions[i] = NULL;
@@ -487,18 +490,23 @@ void get_settings_item_strings(char** item_names, char** item_descriptions) {
 		item_names[i] = strdup(config_names[i]);
 		if (item_names[i] == NULL) {
 			error_message("ERROR: func get_settings_item_strings(): strdup() failed");
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
+			return;
 		}
 		item_descriptions[i] = (char*)calloc(12, sizeof(char));
 		if (item_descriptions[i] == NULL) {
 			error_message("ERROR: func get_settings_item_strings(): calloc() failed");
-			longjmp(jmp_buffer10, 1);
+			GAME_STATE = CRITICAL_ERROR;
+			return;
 		}
 		config_value_to_string(i);
     }
 }
 
 void create_game_menus() {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	void (*menu_functions[][4])() = {
 	{func_Single_Player, func_Multiplayer, func_Settings, func_Quit},
 	{func_Continue, func_Back, func_Settings, func_Quit},
@@ -731,7 +739,7 @@ void custom_menu_driver(MENU* menu, int key, bool* loop_flag, int* old_values, b
 }
 
 void* menu_thread(void* args) {
-	cbreak;
+	cbreak();
 	noecho();
 	keypad(appWindows[MENU_WIN], TRUE);
 	nodelay(appWindows[MENU_WIN], FALSE);
