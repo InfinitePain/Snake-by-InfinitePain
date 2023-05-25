@@ -14,8 +14,7 @@
 #include "thread.h"
 #include "terminal.h"
 #include "timing_utils.h"
-
-extern jmp_buf jmp_buffer10;
+#include "app_status.h"
 
 void delete_snake(Snake* pSnake) {
 	if (pSnake == NULL) {
@@ -27,90 +26,105 @@ void delete_snake(Snake* pSnake) {
 }
 
 void set_snake_position(Snake* pSnake, int x, int y) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	pSnake->pos_snake->head->pos.posx = x;
 	pSnake->pos_snake->head->pos.posy = y;
 }
 
-Snake* create_snake() {
+Snake* create_snake(int length, int color, int direction, int startx, int starty) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	Snake* pSnake = (Snake*)malloc(sizeof(Snake));
 	if (pSnake == NULL)
 	{
 		error_message("ERROR: func create_snake(): malloc");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	pSnake->pos_snake = create_list();
 	if (pSnake->pos_snake == NULL)
 	{
 		error_message("ERROR: func create_snake(): create_list() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	pSnake->is_alive = true;
 	pSnake->point = 0;
-	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
+	pSnake->grow = length;
 	buffer_init(&pSnake->dir_buffer);
 	buffer_init(&pSnake->dir_buffer);
-	add_element_to_head(pSnake->pos_snake, create_element(-1, -1, 0));
+	add_element_to_head(pSnake->pos_snake, create_element(-1, -1));
 	if (pSnake->pos_snake->head == NULL) {
 		error_message("ERROR: func create_snake(): create_element() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
+	buffer_push(&pSnake->dir_buffer, direction);
+	set_snake_color(pSnake, color);
+	set_snake_position(pSnake, startx, starty);
 	return pSnake;
 }
 
-Element* create_element_snake(int x, int y, jmp_buf jmp_buffer) {
-	Element* pElement = create_element(x, y, 0);
-	if (pElement == NULL) {
-		error_message("ERROR: func create_element_snake(): create_element() failed");
-		longjmp(jmp_buffer, 1);
+void set_snake_color(Snake* pSnake, int color) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
 	}
-	return pElement;
+	pSnake->color = color;
 }
 
 void restart_snake(Snake* pSnake) {
 	delete_list(pSnake->pos_snake);
 	pSnake->pos_snake = create_list();
-		if (pSnake->pos_snake == NULL)
+	if (pSnake->pos_snake == NULL)
 	{
 		error_message("ERROR: func create_snake(): create_list() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return;
 	}
 	pSnake->is_alive = true;
 	pSnake->point = 0;
 	pSnake->grow = appArgs.pConfig->configs[SNAKE_LENGTH];
-	add_element_to_head(pSnake->pos_snake, create_element(-1, -1, 0));
+	add_element_to_head(pSnake->pos_snake, create_element(-1, -1));
 	if (pSnake->pos_snake->head == NULL) {
 		error_message("ERROR: func restart_snake(): create_element() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return;
 	}
 }
 
-void move_snake(const Config* pConfig, int direction, Snake* pSnake, jmp_buf jmp_buffer9) {
-	jmp_buf jmp_buffer8;
+void move_snake(const Config* pConfig, int direction, Snake* pSnake) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	int posx = pSnake->pos_snake->head->pos.posx;
 	int posy = pSnake->pos_snake->head->pos.posy;
 	pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
-	if (setjmp(jmp_buffer8) != 1) {
-		switch (direction)
-		{
-		case MOVE_UP:
-			add_element_to_head(pSnake->pos_snake, create_element_snake(posx, posy - 1, jmp_buffer8));
-			break;
-		case MOVE_LEFT:
-			add_element_to_head(pSnake->pos_snake, create_element_snake(posx - 1, posy, jmp_buffer8));
-			break;
-		case MOVE_RIGHT:
-			add_element_to_head(pSnake->pos_snake, create_element_snake(posx + 1, posy, jmp_buffer8));
-			break;
-		case MOVE_DOWN:
-			add_element_to_head(pSnake->pos_snake, create_element_snake(posx, posy + 1, jmp_buffer8));
-			break;
-		}
+	Element* curr;
+	switch (direction)
+	{
+	case MOVE_UP:
+		curr = create_element(posx, posy - 1);
+		break;
+	case MOVE_LEFT:
+		curr = create_element(posx - 1, posy);
+		break;
+	case MOVE_RIGHT:
+		curr = create_element(posx + 1, posy);
+		break;
+	case MOVE_DOWN:
+		curr = create_element(posx, posy + 1);
+		break;
 	}
-	else {
+
+	if (GAME_STATE == CRITICAL_ERROR) {
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_food]);
 		error_message("ERROR: func move_snake(): create_element() failed");
-		longjmp(jmp_buffer9, 1);
+		return;
 	}
+	add_element_to_head(pSnake->pos_snake, curr);
 	
 	if (pSnake->grow > 0) {
 		pSnake->grow--;
@@ -139,7 +153,6 @@ bool is_key_reverse(int key, int dir) {
 
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
-	jmp_buf jmp_buffer9;
 	int key, next_key;
 	int thrnum = get_thrnum(pthread_self());
 	double desired_sleep_time, loop_start_time, loop_end_time, time_spent, time_to_sleep;
@@ -166,29 +179,28 @@ void* snake_thread(void* args) {
 			break;
 		}
 
-		if (setjmp(jmp_buffer9) != 1) {
-			if (buffer_peek(&pSnake->dir_buffer) != -1) {
-				next_key = buffer_pop(&pSnake->dir_buffer);
-				if (!is_key_reverse(next_key, key)) {
-					key = next_key;
-				}
-			}
-			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appWindows[GAME_WIN]);
-			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
-			move_snake(appArgs.pConfig, key, pSnake, jmp_buffer9);
-			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-			list_printer(pSnake->pos_snake, *pSnake->color, 0, appWindows[GAME_WIN]);
-			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
-			loop_end_time = get_current_time_in_seconds();
-			time_spent = loop_end_time - loop_start_time;
-			time_to_sleep = desired_sleep_time - time_spent;
-			if (time_to_sleep > 0) {
-				usleep(time_to_sleep * 1000000);
+		
+		if (buffer_peek(&pSnake->dir_buffer) != -1) {
+			next_key = buffer_pop(&pSnake->dir_buffer);
+			if (!is_key_reverse(next_key, key)) {
+				key = next_key;
 			}
 		}
-		else {
-			GAME_STATE = CRITICAL_ERROR;
+		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+		list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appWindows[GAME_WIN]);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+		move_snake(appArgs.pConfig, key, pSnake);
+		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+		list_printer(pSnake->pos_snake, pSnake->color, 0, appWindows[GAME_WIN]);
+		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+		loop_end_time = get_current_time_in_seconds();
+		time_spent = loop_end_time - loop_start_time;
+		time_to_sleep = desired_sleep_time - time_spent;
+		if (time_to_sleep > 0) {
+			usleep(time_to_sleep * 1000000);
+		}
+		
+		if (GAME_STATE == CRITICAL_ERROR) {
 			pause_thread(thr_snake1);
 			pause_thread(thr_snake2);
 			pause_thread(thr_input1);
