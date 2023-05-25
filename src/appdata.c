@@ -15,8 +15,6 @@
 #include "food.h"
 #include "direction_buffer.h"
 
-GameState GAME_STATE = NOT_STARTED;
-GameMode GAME_MODE = NOT_SELECTED;
 
 appData appArgs = {
 	.pConfig = NULL,
@@ -37,18 +35,12 @@ void init_appData() {
 	create_thread(thr_input1);
 	create_thread(thr_input2);
 	appArgs.pWall = create_wall();
-	appArgs.pSnake1 = create_snake();
+	appArgs.pSnake1 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_1_COLOR], MOVE_RIGHT, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	create_thread(thr_snake1);
-	buffer_push(&appArgs.pSnake1->dir_buffer, MOVE_RIGHT);
-	appArgs.pSnake1->color = &appArgs.pConfig->configs[PLAYER_1_COLOR];
-	set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
-	appArgs.pSnake2 = create_snake();
+	appArgs.pSnake2 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_2_COLOR], MOVE_LEFT, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	create_thread(thr_snake2);
-	buffer_push(&appArgs.pSnake2->dir_buffer, MOVE_LEFT);
-	appArgs.pSnake2->color = &appArgs.pConfig->configs[PLAYER_2_COLOR];
-	set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
-	init_foods();
-	appArgs.pAvailablePositions = create_available_positions();
+	init_foods(appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER], appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
+	appArgs.pAvailablePositions = create_available_positions(getmaxx(appWindows[GAME_WIN]), getmaxy(appWindows[GAME_WIN]));
 	create_thread(thr_food);
 	create_thread(thr_collision);
 }
