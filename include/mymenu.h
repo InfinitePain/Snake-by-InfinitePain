@@ -29,7 +29,6 @@ void change_menu(MENU* menu);
 void req_prev_menu();
 void delete_menu(int index);
 void delete_menus();
-void set_menu_attr(MENU* menu);
 ITEM* create_item(char* string1, char* string2);
 MENU* create_menu(ITEM** items);
 void free_items(ITEM** items, int n_choices);
