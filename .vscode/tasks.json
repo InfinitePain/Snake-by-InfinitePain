@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "test",
+			"command": "python",
+			"args": [
+				"dev.py",
+				"test",
+				"--preset",
+				"${command:cmake.activeConfigurePresetName}"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"presentation": {
+				"focus": true
+			}
+		}		
+	]
+}
