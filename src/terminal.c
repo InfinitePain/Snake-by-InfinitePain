@@ -12,8 +12,7 @@
 #include "appdata.h"
 #include "error_message.h"
 #include <string.h>
-
-extern jmp_buf jmp_buffer10;
+#include "app_status.h"
 
 WINDOW* appWindows[4];
 
@@ -35,10 +34,14 @@ void wmanual_box(WINDOW* win, int x, int y, int width, int height) {
 }
 
 WINDOW* create_win(int width, int height, int start_y, int start_x) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	WINDOW* window = newwin(width, height, start_y, start_x);
 	if (window == NULL) {
 		error_message("ERROR: func create_win(): newwin() failed");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	return window;
 }
@@ -78,6 +81,9 @@ void init_screen() {
 }
 
 void create_app_windows() {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	appWindows[INPUT1_WIN] = create_win(1, 1, 1, 1);
 	appWindows[INPUT2_WIN] = create_win(1, 1, 1, 1);
 	appWindows[GAME_WIN] = create_win(appArgs.pConfig->configs[SCREEN_HEIGHT] - 6, appArgs.pConfig->configs[SCREEN_WIDTH] - 6, 3, 3);
