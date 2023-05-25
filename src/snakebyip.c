@@ -26,39 +26,17 @@
 #include "food.h"
 #include "collision.h"
 #include "direction_buffer.h"
-
- /*
-jmp_buffer7  for init_wall
-jmp_buffer8  for move_snake
-jmp_buffer9  for single_player
-jmp_buffer10 for main
-jmp_buffer11 for create_item_list
-jmp_buffer12 for init_food
- */
-
-jmp_buf jmp_buffer10;
-
-
+#include "app_status.h"
 
 int main(void) {
-	if (setjmp(jmp_buffer10) != 1) {
-		init_screen();
-		init_appData();
-	}
-	else {
-		destroy_appData();
-		mvprintw(error_line, 0, "ERROR: A critical error occurred. Press any key to close this window . . .");
-		refresh();
-		getchar();
-		destroy_screen();
-		return EXIT_FAILURE;
-	}
-	wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
-	mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT]-2, appArgs.pConfig->configs[SCREEN_WIDTH]-8, "V %i.%i.%i", PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
-	refresh();
-	resume_thread(thr_menu);
+	init_screen();
+	init_appData();
 	
-	while (GAME_STATE != QUIT) {
+	while (GAME_STATE != QUIT && GAME_STATE != CRITICAL_ERROR) {
+		wmanual_box(stdscr, 0, 0, appArgs.pConfig->configs[SCREEN_WIDTH], appArgs.pConfig->configs[SCREEN_HEIGHT]);
+		mvwprintw(stdscr, appArgs.pConfig->configs[SCREEN_HEIGHT] - 2, appArgs.pConfig->configs[SCREEN_WIDTH] - 8, "V %i.%i.%i", PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+		refresh();
+		resume_thread(thr_menu);
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_main]);
 		if (GameThreads.pause_flag[thr_main]) {
 			increment_waiting_thread_count();
@@ -94,14 +72,19 @@ int main(void) {
 			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
 			break;
 		case SETTINGS:
-			resize_foods();
+			resize_foods(appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER], appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
 			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
-			break;
-		case CRITICAL_ERROR:
-			longjmp(jmp_buffer10, 1);
 			break;
 		}
 		pause_thread(thr_main);
+	}
+	if (GAME_STATE == CRITICAL_ERROR) {
+		destroy_appData();
+		mvprintw(error_line, 0, "ERROR: A critical error occurred. Press any key to close this window . . .");
+		refresh();
+		getchar();
+		destroy_screen();
+		return EXIT_FAILURE;
 	}
 	destroy_appData();
 	destroy_screen();
