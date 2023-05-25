@@ -11,10 +11,11 @@
 #include <stdlib.h>
 #define NCURSES_STATIC
 #include <ncurses.h>
-#include "config.h"
+#include "../include/config.h"
 #include "error_message.h"
 #include <setjmp.h>
 #include <string.h>
+#include "app_status.h"
 #ifdef __MINGW32__
 #include <windows.h>
 #include <Shlwapi.h>
@@ -32,7 +33,6 @@
 #include <sys/stat.h>
 #endif
 
-extern jmp_buf jmp_buffer10;
 char* config_names[NUM_CONFIGS] = {
 	"PLAYER 1 COLOR",
 	"PLAYER 2 COLOR",
@@ -155,9 +155,13 @@ void get_config_path(Config* pConfig) {
 }
 
 Config* create_config() {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	Config* config = (Config*)malloc(sizeof(Config));
 	if (config == NULL) {
 		error_message("ERROR func create_config(): malloc");
+		GAME_STATE = CRITICAL_ERROR;
 		return NULL;
 	}
 	get_config_path(config);
@@ -184,6 +188,10 @@ void write_config(Config* pConfig) {
 }
 
 void init_config_default(Config* pConfig) {
+	if (pConfig == NULL) {
+		GAME_STATE = CRITICAL_ERROR;
+		return;
+	}
 	pConfig->configs[PLAYER_1_COLOR] = 3;
 	pConfig->configs[PLAYER_2_COLOR] = 5;
 	pConfig->configs[WALL_COLOR] = 2;
@@ -210,7 +218,8 @@ void init_config_default(Config* pConfig) {
 Config* read_config() {
 	Config* pConfig = create_config();
 	if (pConfig == NULL) {
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 
 	if (!pConfig->is_configurable) {
