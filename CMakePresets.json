@@ -6,79 +6,6 @@
 	},
 	"configurePresets": [
 		{
-			"name": "W-base-MSVC-Ninja",
-			"description": "compiler Visual Studio generator Ninja on Windows",
-			"hidden": true,
-			"generator": "Ninja",
-			"binaryDir": "${sourceDir}/out/build/${presetName}",
-			"installDir": "${sourceDir}/out/install/${presetName}",
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "cl.exe",
-				"CMAKE_CXX_COMPILER": "cl.exe"
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "${hostSystemName}",
-				"rhs": "Windows"
-			}
-		},
-		{
-			"name": "W-x64-d-MSVC-N",
-			"displayName": "x64 Debug MSVC Ninja",
-			"inherits": "W-base-MSVC-Ninja",
-			"architecture": {
-				"value": "x64"
-			},
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "W-x64-r-MSVC-N",
-			"displayName": "x64 Release MSVC Ninja",
-			"inherits": "W-x64-d-MSVC-N",
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "W-base-MSVC-VS17",
-			"description": "compiler Visual Studio generator Visual Studio 17 on Windows",
-			"hidden": true,
-			"generator": "Visual Studio 17 2022",
-			"binaryDir": "${sourceDir}/out/build/${presetName}",
-			"installDir": "${sourceDir}/out/install/${presetName}",
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "cl.exe",
-				"CMAKE_CXX_COMPILER": "cl.exe",
-				"CMAKE_MAKE_PROGRAM": "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe"
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "${hostSystemName}",
-				"rhs": "Windows"
-			}
-		},
-		{
-			"name": "W-x64-d-MSVC-VS17",
-			"displayName": "x64 Debug MSVC Visual Studio 17",
-			"inherits": "W-base-MSVC-VS17",
-			"architecture": {
-				"value": "x64"
-			},
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "W-x64-r-MSVC-VS17",
-			"displayName": "x64 Release MSVC Visual Studio 17",
-			"inherits": "W-x64-d-MSVC-VS17",
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
 			"name": "W-base-GCC-Ninja",
 			"description": "compiler GCC generator Ninja on Windows",
 			"hidden": true,
@@ -96,63 +23,27 @@
 			}
 		},
 		{
-			"name": "W-x64-d-GCC-N",
-			"displayName": "x64 Debug GCC Ninja",
+			"name": "Windows-x64-Debug-No-Tests",
+			"displayName": "x64 Debug GCC Ninja Without Tests",
 			"inherits": "W-base-GCC-Ninja",
-			"architecture": {
-				"value": "x64"
-			},
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
+				"CMAKE_BUILD_TYPE": "Debug",
+				"BUILD_TESTING": "OFF"
 			}
 		},
 		{
-			"name": "W-x64-r-GCC-N",
+			"name": "Windows-x64-Debug",
+			"displayName": "x64 Debug GCC Ninja",
+			"inherits": "Windows-x64-Debug-No-Tests",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"BUILD_TESTING": "ON"
+			}
+		},
+		{
+			"name": "Windows-x64-Release",
 			"displayName": "x64 Release GCC Ninja",
-			"inherits": "W-x64-d-GCC-N",
-			"architecture": {
-				"value": "x64"
-			},
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
-			}
-		},
-		{
-			"name": "W-base-GCC-VS17",
-			"description": "compiler GCC generator Visual Studio 17 on Windows",
-			"hidden": true,
-			"generator": "Visual Studio 17 2022",
-			"binaryDir": "${sourceDir}/out/build/${presetName}",
-			"installDir": "${sourceDir}/out/install/${presetName}",
-			"cacheVariables": {
-				"CMAKE_C_COMPILER": "C:/msys64/mingw64/bin/gcc.exe",
-				"CMAKE_CXX_COMPILER": "C:/msys64/mingw64/bin/g++.exe",
-				"CMAKE_MAKE_PROGRAM": "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe"
-			},
-			"condition": {
-				"type": "equals",
-				"lhs": "${hostSystemName}",
-				"rhs": "Windows"
-			}
-		},
-		{
-			"name": "W-x64-d-GCC-VS17",
-			"displayName": "x64 Debug GCC VS17",
-			"inherits": "W-base-GCC-VS17",
-			"architecture": {
-				"value": "x64"
-			},
-			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
-			}
-		},
-		{
-			"name": "W-x64-r-GCC-VS17",
-			"displayName": "x64 Release GCC VS17",
-			"inherits": "W-x64-d-GCC-VS17",
-			"architecture": {
-				"value": "x64"
-			},
+			"inherits": "Windows-x64-Debug",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Release"
 			}
@@ -175,25 +66,29 @@
 			}
 		},
 		{
-			"name": "L-x64-d-GCC-N",
-			"displayName": "x64 Debug GCC Ninja",
+			"name": "Linux-x64-Debug-No-Tests",
+			"displayName": "x64 Debug GCC Ninja Without Tests",
 			"inherits": "L-base-GCC-Ninja",
-			"architecture": {
-				"value": "x64"
-			},
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
+				"CMAKE_BUILD_TYPE": "Debug",
+				"BUILD_TESTING": "OFF"
 			}
 		},
 		{
-			"name": "L-x64-r-GCC-N",
-			"displayName": "x64 Release GCC Ninja",
-			"inherits": "L-x64-d-GCC-N",
-			"architecture": {
-				"value": "x64"
-			},
+			"name": "Linux-x64-Debug",
+			"displayName": "x64 Debug GCC Ninja",
+			"inherits": "Linux-x64-Debug-No-Tests",
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Release"
+				"BUILD_TESTING": "ON"
+			}
+		},
+		{
+			"name": "Linux-x64-Release",
+			"displayName": "x64 Release GCC Ninja",
+			"inherits": "Linux-x64-Debug",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"BUILD_TESTING": "OFF"
 			}
 		}
 	],
@@ -223,144 +118,96 @@
 			"cleanFirst": false
 		},
 		{
-			"name": "cb-W-x64-d-MSVC-N",
-			"displayName": "Clean Build",
+			"name": "Windows-x64-Debug",
+			"displayName": "Clean Build with Tests",
 			"inherits": "base-clean-debug",
-			"targets":["all"],
-			"configurePreset": "W-x64-d-MSVC-N"
+			"targets": ["all"],
+			"configurePreset": "Windows-x64-Debug"
 		},
 		{
-			"name": "cb-W-x64-r-MSVC-N",
-			"displayName": "Clean Build",
-			"inherits": "base-clean-release",
-			"targets":["all"],
-			"configurePreset": "W-x64-r-MSVC-N"
-		},
-		{
-			"name": "b-W-x64-d-MSVC-N",
-			"displayName": "Build",
-			"inherits": "base-debug",
-			"targets":["all"],
-			"configurePreset": "W-x64-d-MSVC-N"
-		},
-		{
-			"name": "b-W-x64-r-MSVC-N",
-			"displayName": "Build",
-			"inherits": "base-release",
-			"targets":["all"],
-			"configurePreset": "W-x64-r-MSVC-N"
-		},
-		{
-			"name": "cb-W-x64-d-MSVC-VS17",
-			"displayName": "Clean Build",
+			"name": "Windows-x64-Debug-No-Tests",
+			"displayName": "Clean Build without Tests",
 			"inherits": "base-clean-debug",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-d-MSVC-VS17"
+			"targets": ["all"],
+			"configurePreset": "Windows-x64-Debug-No-Tests"
 		},
 		{
-			"name": "cb-W-x64-r-MSVC-VS17",
-			"displayName": "Clean Build",
+			"name": "Windows-x64-Release",
+			"displayName": "Clean Build Release",
 			"inherits": "base-clean-release",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-r-MSVC-VS17"
+			"targets": ["all"],
+			"configurePreset": "Windows-x64-Release"
 		},
 		{
-			"name": "b-W-x64-d-MSVC-VS17",
-			"displayName": "Build",
-			"inherits": "base-debug",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-d-MSVC-VS17"
-		},
-		{
-			"name": "b-W-x64-r-MSVC-VS17",
-			"displayName": "Build",
-			"inherits": "base-release",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-r-MSVC-VS17"
-		},
-		{
-			"name": "cb-W-x64-d-GCC-N",
-			"displayName": "Clean Build",
+			"name": "Linux-x64-Debug",
+			"displayName": "Clean Build with Tests",
 			"inherits": "base-clean-debug",
-			"targets":["all"],
-			"configurePreset": "W-x64-d-GCC-N"
+			"targets": ["all"],
+			"configurePreset": "Linux-x64-Debug"
 		},
 		{
-			"name": "cb-W-x64-r-GCC-N",
-			"displayName": "Clean Build",
-			"inherits": "base-clean-release",
-			"targets":["all"],
-			"configurePreset": "W-x64-r-GCC-N"
-		},
-		{
-			"name": "b-W-x64-d-GCC-N",
-			"displayName": "Build",
-			"inherits": "base-debug",
-			"targets":["all"],
-			"configurePreset": "W-x64-d-GCC-N"
-		},
-		{
-			"name": "b-W-x64-r-GCC-N",
-			"displayName": "Build",
-			"inherits": "base-release",
-			"targets":["all"],
-			"configurePreset": "W-x64-r-GCC-N"
-		},
-		{
-			"name": "cb-W-x64-d-GCC-VS17",
-			"displayName": "Clean Build",
+			"name": "Linux-x64-Debug-No-Tests",
+			"displayName": "Clean Build without Tests",
 			"inherits": "base-clean-debug",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-d-GCC-VS17"
+			"targets": ["all"],
+			"configurePreset": "Linux-x64-Debug-No-Tests"
 		},
 		{
-			"name": "cb-W-x64-r-GCC-VS17",
-			"displayName": "Clean Build",
+			"name": "Linux-x64-Release",
+			"displayName": "Clean Build Release",
 			"inherits": "base-clean-release",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-r-GCC-VS17"
+			"targets": ["all"],
+			"configurePreset": "Linux-x64-Release"
+		}
+	],
+	"testPresets": [
+		{
+			"name": "Windows-x64-Debug",
+			"displayName": "Test",
+			"configurePreset": "Windows-x64-Debug",
+			"output": {
+				"outputOnFailure": true
+			},
+			"execution": {
+				"stopOnFailure": true,
+				"noTestsAction": "error"
+			}
 		},
 		{
-			"name": "b-W-x64-d-GCC-VS17",
-			"displayName": "Build",
-			"inherits": "base-debug",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-d-GCC-VS17"
+			"name": "Windows-x64-Debug-No-Tests",
+			"displayName": "Test",
+			"configurePreset": "Windows-x64-Debug-No-Tests",
+			"output": {
+				"outputOnFailure": false
+			},
+			"execution": {
+				"stopOnFailure": true,
+				"noTestsAction": "ignore"
+			}
 		},
 		{
-			"name": "b-W-x64-r-GCC-VS17",
-			"displayName": "Build",
-			"inherits": "base-release",
-			"targets":["ALL_BUILD"],
-			"configurePreset": "W-x64-r-GCC-VS17"
+			"name": "Linux-x64-Debug",
+			"displayName": "Test",
+			"configurePreset": "Linux-x64-Debug",
+			"output": {
+				"outputOnFailure": true
+			},
+			"execution": {
+				"stopOnFailure": true,
+				"noTestsAction": "error"
+			}
 		},
 		{
-			"name": "cb-L-x64-d-GCC-N",
-			"displayName": "Clean Build",
-			"inherits": "base-clean-debug",
-			"targets":["all"],
-			"configurePreset": "L-x64-d-GCC-N"
-		},
-		{
-			"name": "cb-L-x64-r-GCC-N",
-			"displayName": "Clean Build",
-			"inherits": "base-clean-release",
-			"targets":["all"],
-			"configurePreset": "L-x64-r-GCC-N"
-		},
-		{
-			"name": "b-L-x64-d-GCC-N",
-			"displayName": "Build",
-			"inherits": "base-debug",
-			"targets":["all"],
-			"configurePreset": "L-x64-d-GCC-N"
-		},
-		{
-			"name": "b-L-x64-r-GCC-N",
-			"displayName": "Build",
-			"inherits": "base-release",
-			"targets":["all"],
-			"configurePreset": "L-x64-r-GCC-N"
+			"name": "Linux-x64-Debug-No-Tests",
+			"displayName": "Test",
+			"configurePreset": "Linux-x64-Debug-No-Tests",
+			"output": {
+				"outputOnFailure": false
+			},
+			"execution": {
+				"stopOnFailure": true,
+				"noTestsAction": "ignore"
+			}
 		}
 	]
 }
