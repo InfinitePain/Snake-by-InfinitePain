@@ -17,7 +17,7 @@ extern bool game_timer_needs_reset;
 
 
 bool is_snake_collided(Snake* pSnake);
-bool is_snake_collided_with_wall(Snake* pSnake);
+bool is_snake_collided_with_wall(Snake* pSnake, int width, int height);
 bool is_snake_collided_with_snake(Snake* pSnake1, Snake* pSnake2);
 Element* get_collided_food_element(List* pFood, Snake* pSnake);
 void handle_food_collision(Element* collided_food, Snake* pSnake);
