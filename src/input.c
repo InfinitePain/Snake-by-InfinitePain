@@ -15,9 +15,7 @@
 #include "appdata.h"
 #include "thread.h"
 #include "terminal.h"
-
-extern jmp_buf jmp_buffer10;
-
+#include "app_status.h"
 
 int read_input(const int key) {
 	if (key == appArgs.pConfig->configs[PLAYER_1_UP] || key == appArgs.pConfig->configs[PLAYER_2_UP]) {
@@ -44,7 +42,6 @@ int differentiator(const int key) {
 	}
 	return -1;
 }
-
 
 void input_driver(const int key) {
 	switch (differentiator(key))
