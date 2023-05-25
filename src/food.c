@@ -15,9 +15,7 @@
 #include "terminal.h"
 #include "appdata.h"
 #include "error_message.h"
-
-extern jmp_buf jmp_buffer10;
-jmp_buf jmp_buffer12;
+#include "app_status.h"
 
 void delete_available_positions(AvailablePositions* ap) {
 	if (ap == NULL) {
@@ -27,19 +25,22 @@ void delete_available_positions(AvailablePositions* ap) {
 	free(ap);
 }
 
-AvailablePositions* create_available_positions() {
+AvailablePositions* create_available_positions(int width, int height) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	AvailablePositions* ap = (AvailablePositions*)malloc(sizeof(AvailablePositions));
 	if (ap == NULL) {
 		error_message("ERROR: func create_available_positions(): malloc");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
-	int width = getmaxx(appWindows[GAME_WIN]);
-	int height = getmaxy(appWindows[GAME_WIN]);
 	int max_positions = (width - 2) * (height - 2);
 	ap->positions = (Position*)malloc(max_positions * sizeof(Position));
 	if (ap->positions == NULL) {
 		error_message("ERROR: func create_available_positions(): malloc");
-		longjmp(jmp_buffer10, 1);
+		GAME_STATE = CRITICAL_ERROR;
+		return NULL;
 	}
 	ap->count = 0;
 
@@ -53,7 +54,7 @@ AvailablePositions* create_available_positions() {
 }
 
 void remove_position(AvailablePositions* ap, int x, int y) {
-	if (ap == NULL) {
+	if (ap == NULL || GAME_STATE == CRITICAL_ERROR) {
 		return;
 	}
 	for (int i = 0; i < ap->count; i++) {
@@ -68,7 +69,7 @@ void remove_position(AvailablePositions* ap, int x, int y) {
 }
 
 void add_position(AvailablePositions* ap, int x, int y) {
-	if (ap == NULL) {
+	if (ap == NULL || GAME_STATE == CRITICAL_ERROR) {
 		return;
 	}
 	Position pos = { x, y };
@@ -82,7 +83,7 @@ void delete_foods() {
 }
 
 void get_random_position(AvailablePositions* ap, int* x, int* y) {
-	if (ap == NULL) {
+	if (ap == NULL || GAME_STATE == CRITICAL_ERROR) {
 		return;
 	}
 	int index = rand() % ap->count;
@@ -91,6 +92,9 @@ void get_random_position(AvailablePositions* ap, int* x, int* y) {
 }
 
 Element* food_adresser(List* pList) {
+	if (pList == NULL || GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
 	Element* curr = pList->head;
 	while (curr != NULL) {
 		if (curr->pos.posx == -1 || curr->pos.posy == -1)
@@ -104,6 +108,9 @@ Element* food_adresser(List* pList) {
 }
 
 void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
+	if (pFood == NULL || pSnake1 == NULL || pSnake2 == NULL || GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	int x, y;
 	Element* curr = food_adresser(pFood);
 	if (curr == NULL) {
@@ -146,6 +153,9 @@ void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
 }
 
 void reset_food(List* pFood) {
+	if (pFood == NULL || GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	Element* curr = pFood->head;
 	while (curr != NULL) {
 		curr->pos.posx = -1;
@@ -154,50 +164,60 @@ void reset_food(List* pFood) {
 	}
 }
 
-void resize_foods() {
-    int max_food = appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER];
-    if (appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] > max_food) {
-        max_food = appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER];
+void resize_foods(int food_amount_single_player, int food_amount_multiplayer) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
+	int max_food = food_amount_multiplayer;
+    if (food_amount_single_player > max_food) {
+        max_food = food_amount_single_player;
     }
 
-    while (max_food != appArgs.pFood_Main->size) {
-        if (max_food > appArgs.pFood_Main->size) {
-            add_element_to_head(appArgs.pFood_Main, create_element(-1, -1, 12));
+	while (max_food != appArgs.pFood_Main->size) {
+		if (max_food > appArgs.pFood_Main->size) {
+			Element* curr = create_element(-1, -1);
+			add_element_to_head(appArgs.pFood_Main, curr);
 		}
 		else {
 			delete_last_element(appArgs.pFood_Main);
         }
 	}
 	
-	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
-    make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER]);
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, food_amount_multiplayer);
+    make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, food_amount_single_player);
 }
 
-void init_foods() {
+void init_foods(int food_amount_single_player, int food_amount_multiplayer) {
+	if(GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	appArgs.pFood_Main = create_list();
 	appArgs.pFood_Multiplayer = create_list();
 	appArgs.pFood_Single_Player = create_list();
 	if (appArgs.pFood_Main == NULL || appArgs.pFood_Multiplayer == NULL || appArgs.pFood_Single_Player == NULL) {
-		longjmp(jmp_buffer10, 1);
+		error_message("ERROR: func food_init(): create_list() failed");
+		GAME_STATE = CRITICAL_ERROR;
+		return;
 	}
 	srand(time(NULL));
 
-	int max_food = appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER];
-	if (appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER] > max_food) {
-		max_food = appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER];
+	int max_food = food_amount_multiplayer;
+	if (food_amount_single_player > max_food) {
+		max_food = food_amount_single_player;
 	}
-
-	if (setjmp(jmp_buffer12) != 1) {
-		while (max_food != appArgs.pFood_Main->size) {
-			add_element_to_head(appArgs.pFood_Main, create_element(-1, -1, 12));
+	
+	Element* curr;
+	while (max_food != appArgs.pFood_Main->size) {
+		curr = create_element(-1, -1);
+		if (curr == NULL) {
+			error_message("ERROR: func food_init(): create_element() failed");
+			GAME_STATE = CRITICAL_ERROR;
+			return;
 		}
+		add_element_to_head(appArgs.pFood_Main, curr);
 	}
-	else {
-		error_message("ERROR: func food_init(): create_element() failed");
-		longjmp(jmp_buffer10, 1);
-	}
-	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
-	make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER]);
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, food_amount_multiplayer);
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, food_amount_single_player);
 }
 
 void* food_thread(void* args) {
@@ -213,7 +233,7 @@ void* food_thread(void* args) {
 
 		switch (GAME_MODE) {
 		case SINGLE_PLAYER:
-			random_food_generator(appArgs.pFood_Single_Player, appArgs.pSnake1, NULL);
+			random_food_generator(appArgs.pFood_Single_Player, appArgs.pSnake1, appArgs.pSnake2);
 			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 			list_printer(appArgs.pFood_Single_Player, appArgs.pConfig->configs[FOOD_COLOR], 0, appWindows[GAME_WIN]);
 			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
