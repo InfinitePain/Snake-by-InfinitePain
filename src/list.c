@@ -11,13 +11,17 @@
 #include <stdlib.h>
 #include <error_message.h>
 #include <setjmp.h>
+#include "app_status.h"
 
-jmp_buf jmp_buffer3;
-
-List* create_list(){
+List* create_list() {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return NULL;
+	}
+	
 	List* pList = (List*)malloc(sizeof(List));
 	if (pList == NULL) {
 		error_message("ERROR: func create_list(): malloc");
+		GAME_STATE = CRITICAL_ERROR;
 		return NULL;
 	}
 	pList->head = NULL;
@@ -26,6 +30,9 @@ List* create_list(){
 }
 
 void add_element_to_head(List* pList, Element* pElement) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	if (pList->head == NULL) {
 		// The list is empty, so set the head and tail to the new element
 		pList->head = pElement;
@@ -47,7 +54,7 @@ void add_element_to_head(List* pList, Element* pElement) {
 }
 
 Element* get_element_at_index(List* pList, const int index) {
-	if (pList->head == NULL) {
+	if (pList->head == NULL || GAME_STATE == CRITICAL_ERROR) {
 		return NULL;
 	}
 	Element* curr = pList->head;
@@ -97,6 +104,9 @@ void delete_list(List* pList) {
 }
 
 void list_printer(List* pList, const int color, const int time, WINDOW* window) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	Element* curr = pList->head;
 	wattron(window, COLOR_PAIR(color));
 	while (curr != NULL) {
@@ -109,6 +119,9 @@ void list_printer(List* pList, const int color, const int time, WINDOW* window) 
 }
 
 void make_list_from(List* source_list, List* target_list, const int size) {
+	if (GAME_STATE == CRITICAL_ERROR) {
+		return;
+	}
 	if (source_list == NULL || target_list == NULL) {
 		return;
 	}
