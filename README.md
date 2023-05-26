@@ -56,4 +56,3 @@ For a detailed list of changes in each version, please refer to the [changelog](
 ## Distribution
 
 Snake by InfinitePain will be distributed as an .msi installer for Windows using CMake and as a PKGBUILD for Arch Linux. The goal is to make Snake by InfinitePain easily installable on a wide range of platforms. Releases and source code are available on the [GitHub repository](https://github.com/InfinitePain/snake-by-infinitepain).
-
