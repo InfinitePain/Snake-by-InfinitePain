@@ -35,9 +35,9 @@ void init_appData() {
 	create_thread(thr_input1);
 	create_thread(thr_input2);
 	appArgs.pWall = create_wall();
-	appArgs.pSnake1 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_1_COLOR], MOVE_RIGHT, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
+	appArgs.pSnake1 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_1_COLOR], MOVE_RIGHT, -1, -1);
 	create_thread(thr_snake1);
-	appArgs.pSnake2 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_2_COLOR], MOVE_LEFT, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
+	appArgs.pSnake2 = create_snake(appArgs.pConfig->configs[SNAKE_LENGTH], appArgs.pConfig->configs[PLAYER_2_COLOR], MOVE_LEFT, -1, -1);
 	create_thread(thr_snake2);
 	init_foods(appArgs.pConfig->configs[FOOD_AMOUNT_SINGLE_PLAYER], appArgs.pConfig->configs[FOOD_AMOUNT_MULTIPLAYER]);
 	appArgs.pAvailablePositions = create_available_positions(getmaxx(appWindows[GAME_WIN]), getmaxy(appWindows[GAME_WIN]));
