@@ -2,18 +2,24 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
-## [1.2.0] - 2023-04-09
+## [1.2.0] - 2023-05-26
 
 ### Added
 
-- Added AvailablePositions struct to manage available positions for food generation
+- Added AvailablePositions struct for food generation
+- Added collision tests, direction buffer tests, game element creation tests, food generation tests, input handling tests, list data structure tests, and snake behavior tests.
 
 ### Changed
 
-- Refactored food generation process to use AvailablePositions
-- Changed default GAME_SPEED from 4 to 7
-- Refactored int_value_changer function in mymenu.c for improved code readability and maintainability
-- Updated print_info_enter and print_info_ud_arrow functions in mymenu.c to use safe string formatting
+- Refactored food generation to use AvailablePositions
+- Changed default game speed
+- Refactored code for improved readability and maintainability
+- Updated build automation scripts
+- Added version update script
+- Updated CMakeLists.txt and .gitignore
+- Improved error handling and state management
+- Optimized window creation and destruction
+- Added thread creation error handling
 
 ## [1.1.10] - 2023-04-08
 
