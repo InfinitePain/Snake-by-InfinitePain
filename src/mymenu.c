@@ -79,10 +79,12 @@ void start_game(GameMode mode, bool is_new_game) {
 	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+	set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 	if (mode == MULTIPLAYER) {
 		appArgs.pSnake2->is_alive = true;
+		set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 		resume_thread(thr_snake2);
 	}
 	resume_thread(thr_collision);
@@ -468,8 +470,10 @@ void config_value_to_string(int config_index) {
 	case SNAKE_LENGTH:
 	case FOOD_AMOUNT_SINGLE_PLAYER:
 	case FOOD_AMOUNT_MULTIPLAYER:
-	case GAME_SPEED:
 		snprintf(settings_menu_descriptions[config_index], 10, "%9d", appArgs.pConfig->configs[config_index]);
+		break;
+	case GAME_SPEED:
+		snprintf(settings_menu_descriptions[config_index], 10, "%9d", 11 - appArgs.pConfig->configs[config_index]);
 		break;
 	default:
 		snprintf(settings_menu_descriptions[config_index], 10, "%9s", "Unknown");
