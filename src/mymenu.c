@@ -70,6 +70,8 @@ void start_game(GameMode mode, bool is_new_game) {
 		pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 		reset_food(appArgs.pFood_Main);
+		set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
+		set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	}
 	GAME_STATE = STARTED;
 	GAME_MODE = mode;
@@ -79,13 +81,14 @@ void start_game(GameMode mode, bool is_new_game) {
 	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
 	list_printer(appArgs.pWall, appArgs.pConfig->configs[WALL_COLOR], 0, appWindows[GAME_WIN]);
 	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
-	set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	appArgs.pSnake1->is_alive = true;
 	resume_thread(thr_snake1);
 	if (mode == MULTIPLAYER) {
 		appArgs.pSnake2->is_alive = true;
-		set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 		resume_thread(thr_snake2);
+	}
+	else if (mode == SINGLE_PLAYER) {
+		set_snake_position(appArgs.pSnake2, -1, -1);
 	}
 	resume_thread(thr_collision);
 }
