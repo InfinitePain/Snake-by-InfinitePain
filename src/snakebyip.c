@@ -51,7 +51,6 @@ int main(void) {
 				restart_snake(appArgs.pSnake1);
 				buffer_clear(&appArgs.pSnake1->dir_buffer);
 				buffer_push(&appArgs.pSnake1->dir_buffer, MOVE_RIGHT);
-				set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				game_timer_needs_reset = true;
 
 			}
@@ -63,7 +62,6 @@ int main(void) {
 				restart_snake(appArgs.pSnake2);
 				buffer_clear(&appArgs.pSnake2->dir_buffer);
 				buffer_push(&appArgs.pSnake2->dir_buffer, MOVE_LEFT);
-				set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 				game_timer_needs_reset = true;
 			}
 			pthread_cond_signal(&GameThreads.pause_cond[thr_menu]);
