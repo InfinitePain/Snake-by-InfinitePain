@@ -2,6 +2,25 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
+## [1.2.3] - 2023-05-26
+
+### Fixed
+
+- Ensured snake positions are retained after game is paused and unpaused.
+- Snake positions are now set during the initialization of a new game.
+
+## [1.2.2] - 2023-05-26
+
+### Fixed
+
+- The game speed is now correctly displayed.
+
+## [1.2.1] - 2023-05-26
+
+### Fixed
+
+- Adjusted the snake initialization. The positions of the snakes are now set only when new game started.
+
 ## [1.2.0] - 2023-05-26
 
 ### Added
