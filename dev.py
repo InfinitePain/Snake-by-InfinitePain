@@ -11,19 +11,23 @@ def check_preset(preset):
         raise ValueError(f"Preset '{preset}' not found in CMakePresets.json")
 
 def configure(preset):
-    if preset == 'default':
-        subprocess.run(['cmake', '-S', '.', '-B', './out/build/default', '-DBUILD_TESTING=ON'])
+    if preset == None:
+        result = subprocess.run(['cmake', '-S', '.', '-B', './out/build/default', '-DBUILD_TESTING=ON'])
     else:
-        subprocess.run(['cmake', '-S', '.', '-B', f'./out/build/{preset}', '--preset', preset])
+        result = subprocess.run(['cmake', '-S', '.', '-B', f'./out/build/{preset}', '--preset', preset])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 def build(preset):
-    if preset == 'default':
-        subprocess.run(['cmake', '--build', './out/build/default'])
+    if preset == None:
+        result = subprocess.run(['cmake', '--build', './out/build/default'])
     else:
-        subprocess.run(['cmake', '--build', f'./out/build/{preset}', '--preset', preset])
+        result = subprocess.run(['cmake', '--build', f'./out/build/{preset}', '--preset', preset])
+    if result.returncode != 0:	
+        sys.exit(result.returncode)
 
 def test(preset):
-    if preset == 'default':
+    if preset == None:
         folder = './out/build/default'
     else:
         folder = f'./out/build/{preset}'
@@ -31,40 +35,49 @@ def test(preset):
     if test_count == 0:
         print("No tests available. Continuing...")
     else:
-        subprocess.run(['ctest', '-C', folder])
+        result = subprocess.run(['ctest', '-C', folder])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 def run(preset):
-    if preset == 'default':
-        subprocess.run(['./out/build/default/Snake-by-InfinitePain/Snake-by-InfinitePain'])
+    if preset == None:
+        result = subprocess.run(['./out/build/default/Snake-by-InfinitePain/Snake-by-InfinitePain'])
     else:
-        subprocess.run([f'./out/build/{preset}/Snake-by-InfinitePain/Snake-by-InfinitePain'])
+        result = subprocess.run([f'./out/build/{preset}/Snake-by-InfinitePain/Snake-by-InfinitePain'])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 def version(version, force):
+    if version == None:
+        print("Error: No version specified")
+        sys.exit(1)
     if force:
         subprocess.run(['python', 'update_version.py', version, '--force'])
     else:
         subprocess.run(['python', 'update_version.py', version])
 
-def clean(preset):
-    if preset == 'default':
-        subprocess.run(['rm', '-rf', './out/build/default'])
+def clean(preset, all):
+    if all and preset != None:
+        print("Error: Both 'all' flag and preset are specified. Please specify only one.")
+        sys.exit(1)
+    elif all:
+        subprocess.run(['rm', '-rf', './out/build/*'])
+    elif preset == None:
+        print("Error: No preset specified")
+        sys.exit(1)
     else:
+        if not os.path.exists(f'./out/build/{preset}'):
+            print(f"Error: Preset '{preset}' does not exist")
+            sys.exit(1)
         subprocess.run(['rm', '-rf', f'./out/build/{preset}'])
-
-def run_command(command, preset):
-    if preset == 'none':
-        result = subprocess.run(command.split())
-    else:
-        result = subprocess.run((command + f' --preset {preset}').split())
-    if result.returncode != 0:
-        sys.exit(result.returncode)
 
 def main():
     parser = argparse.ArgumentParser(description='Python script equivalent of the Makefile for the Snake-by-InfinitePain project.')
     parser.add_argument('commands', nargs='+', choices=['configure', 'build', 'test', 'run', 'version', 'clean'], help='The commands to run.')
-    parser.add_argument('--preset', default='none', help='The preset to use from CMakePresets.json.')
-    parser.add_argument('--version', default='none', help='The new version for the version command.')
+    parser.add_argument('--preset', default=None, help='The preset to use from CMakePresets.json.')
+    parser.add_argument('--version', default=None, help='The new version for the version command.')
     parser.add_argument('--force', action='store_true', help='Force the version update even if the specified version is invalid or lower than the current version.')
+    parser.add_argument('--all', action='store_true', help='Delete all presets when cleaning.')
     args = parser.parse_args()
 
     if 'clean' in args.commands and len(args.commands) > 1:
@@ -72,28 +85,22 @@ def main():
         sys.exit(1)
 
     if 'version' in args.commands:
-        if args.version == 'none':
-            print("Error: No version specified")
-            sys.exit(1)
-        if args.force:
-            subprocess.run(['python', 'update_version.py', args.version, '--force'])
-        else:
-            subprocess.run(['python', 'update_version.py', args.version])
+        version(args.version, args.force)
 
     if 'configure' in args.commands:
-        run_command(f'cmake -S . -B ./out/build/{args.preset}', args.preset)
+        configure(args.preset)
 
     if 'build' in args.commands:
-        run_command(f'cmake --build ./out/build/{args.preset}', args.preset)
+        build(args.preset)
 
     if 'test' in args.commands:
-        run_command(f'ctest -C ./out/build/{args.preset}', args.preset)
+        test(args.preset)
 
     if 'run' in args.commands:
-        run_command(f'./out/build/{args.preset}/Snake-by-InfinitePain/Snake-by-InfinitePain', args.preset)
+        run(args.preset)
 
     if 'clean' in args.commands:
-        subprocess.run(['rm', '-rf', f'./out/build/{args.preset}'])
+        clean(args.preset, args.all)
 
 if __name__ == '__main__':
     main()
