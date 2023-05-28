@@ -1,0 +1,30 @@
+pkgname=Snake-by-InfinitePain
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="A simple snake game written in C"
+arch=('x86_64')
+url="https://github.com/InfinitePain/Snake-by-InfinitePain"
+license=('Apache')
+depends=('glibc' 'ncurses')
+makedepends=('cmake' 'ninja')
+source=("REPLACE_WITH_ACTUAL_URL")
+sha256sums=('REPLACE_WITH_ACTUAL_SHA256SUM')
+
+build() {
+    tar -xzf "v${pkgver}.tar.gz"
+    cd "${pkgname}-${pkgver}"
+    cmake \
+		-B "build" \
+		-S "." \
+		-G Ninja \
+        -DCMAKE_BUILD_TYPE='None' \
+        -DCMAKE_INSTALL_PREFIX:PATH='/usr' \
+        -Wno-dev
+    cmake --build "build" --verbose
+}
+
+package() {
+    cd "${pkgname}-${pkgver}"
+    DESTDIR="${pkgdir}" cmake --install "build"
+    install -D -m644 "LICENSE.txt" -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
