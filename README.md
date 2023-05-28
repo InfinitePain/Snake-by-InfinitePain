@@ -17,11 +17,25 @@ Snake by InfinitePain is a terminal-based snake game that features single player
 
 Windows:
 
-Download the .msi installer from the [GitHub Releases](https://github.com/InfinitePain/snake-by-infinitepain/releases) page and follow the installation instructions.
+Download the .exe installer from the [GitHub Releases](https://github.com/InfinitePain/snake-by-infinitepain/releases) page and follow the installation instructions.
 
 Arch Linux:
 
-A PKGBUILD will be provided for Arch Linux users. More details coming soon.
+A PKGBUILD file is provided for Arch Linux users. You can use this file to build and install the game. Here's how:
+
+1. Download the PKGBUILD file using the following command:
+
+    ```bash
+    curl -O https://raw.githubusercontent.com/InfinitePain/Snake-by-InfinitePain/main/Installers/arch_linux/PKGBUILD
+    ```
+
+2. Build and install the package with the following commands:
+
+```bash
+makepkg -si
+```
+
+Please note that you need to have `base-devel` and `git` installed on your system to build the package.
 
 ## Configuration File
 
