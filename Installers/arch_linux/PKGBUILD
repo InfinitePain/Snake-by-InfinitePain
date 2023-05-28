@@ -1,5 +1,5 @@
 pkgname=Snake-by-InfinitePain
-pkgver=1.2.0
+pkgver=1.2.3
 pkgrel=1
 pkgdesc="A simple snake game written in C"
 arch=('x86_64')
@@ -7,7 +7,7 @@ url="https://github.com/InfinitePain/Snake-by-InfinitePain"
 license=('Apache')
 depends=('glibc' 'ncurses')
 makedepends=('cmake' 'ninja')
-source=("https://github.com/InfinitePain/Snake-by-InfinitePain/archive/refs/tags/v1.2.3.tar.gz")
+source=("https://github.com/InfinitePain/Snake-by-InfinitePain/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('1825af157c0989d9f64972de0f7ed5b886ddd4f025fe4eca5c479d7f1adcd0da')
 
 build() {
