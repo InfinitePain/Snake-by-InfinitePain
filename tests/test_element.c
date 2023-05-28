@@ -36,7 +36,7 @@ Suite* element_suite()
 
 int main(void)
 {
-	int number_failed;
+	int number_failed = 0;
 
 	{
 		Suite* s = element_suite();

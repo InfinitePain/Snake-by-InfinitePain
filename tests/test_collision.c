@@ -76,7 +76,7 @@ Suite* collision_suite(void)
 
 int main(void)
 {
-	int number_failed;
+	int number_failed = 0;
 
 	{
 		Suite* s = collision_suite();

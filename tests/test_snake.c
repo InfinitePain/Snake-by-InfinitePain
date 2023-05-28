@@ -108,7 +108,7 @@ Suite *snake_suite(void)
 
 int main(void)
 {
-	int number_failed;
+	int number_failed = 0;
 
 	{
 		Suite* s = snake_suite();
