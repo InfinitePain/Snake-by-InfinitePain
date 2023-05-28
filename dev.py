@@ -114,17 +114,50 @@ def clean(preset, all):
             sys.exit(1)
         subprocess.run(['rm', '-rf', f'./out/build/{preset}'])
 
+def installer():
+    configure('Windows-x64-Release')
+    build('Windows-x64-Release')
+
+    os.chdir('./out/build/Windows-x64-Release')
+
+    result = subprocess.run(['cpack'])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+    os.chdir('../../../installers/wix')
+
+    result = subprocess.run(['candle', '-ext', 'WixBalExtension', 'bundle.wxs'])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+    result = subprocess.run(['light', '-ext', 'WixBalExtension', 'Bundle.wixobj', '-o', 'Snake-by-InfinitePain-Windows_Installer.exe'])
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+
+class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+
 def main():
-    parser = argparse.ArgumentParser(description='Python script equivalent of the Makefile for the Snake-by-InfinitePain project.')
-    parser.add_argument('commands', nargs='+', choices=['configure', 'build', 'test', 'run', 'version', 'clean'], help='The commands to run.')
+    parser = argparse.ArgumentParser(description='Python script for the Snake-by-InfinitePain project.')
+    parser = argparse.ArgumentParser(description='''Python script for the Snake-by-InfinitePain project.
+
+Commands:
+  configure           Configure the project using a preset from CMakePresets.json.
+  build               Build the project using a preset from CMakePresets.json.
+  test                Run tests on the project using a preset from CMakePresets.json.
+  run                 Run the project using a preset from CMakePresets.json.
+  version             Update the version of the project.
+  clean               Clean the build directory of the project.
+  installer           Create an installer for the project.''', formatter_class=CustomFormatter)
+    parser.add_argument('commands', nargs='+', help=argparse.SUPPRESS)
     parser.add_argument('--preset', default=None, help='The preset to use from CMakePresets.json.')
     parser.add_argument('--version', default=None, help='The new version for the version command.')
     parser.add_argument('--force', action='store_true', help='Force the version update even if the specified version is invalid or lower than the current version.')
     parser.add_argument('--all', action='store_true', help='Delete all presets when cleaning.')
     args = parser.parse_args()
 
-    if 'clean' in args.commands and len(args.commands) > 1:
-        print("Error: The 'clean' command cannot be used with other commands")
+    if ('clean' in args.commands or 'installer' in args.commands) and len(args.commands) > 1:
+        print("Error: The 'clean' and 'installer' commands cannot be used with other commands")
         sys.exit(1)
 
     if 'version' in args.commands:
@@ -144,6 +177,9 @@ def main():
 
     if 'clean' in args.commands:
         clean(args.preset, args.all)
+
+    if 'installer' in args.commands:
+        installer()
 
 if __name__ == '__main__':
     main()
