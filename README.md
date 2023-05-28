@@ -31,9 +31,9 @@ A PKGBUILD file is provided for Arch Linux users. You can use this file to build
 
 2. Build and install the package with the following commands:
 
-```bash
-makepkg -si
-```
+    ```bash
+    makepkg -si
+    ```
 
 Please note that you need to have `base-devel` and `git` installed on your system to build the package.
 
