@@ -175,18 +175,6 @@
 			}
 		},
 		{
-			"name": "Windows-x64-Debug-No-Tests",
-			"displayName": "Test",
-			"configurePreset": "Windows-x64-Debug-No-Tests",
-			"output": {
-				"outputOnFailure": false
-			},
-			"execution": {
-				"stopOnFailure": true,
-				"noTestsAction": "ignore"
-			}
-		},
-		{
 			"name": "Linux-x64-Debug",
 			"displayName": "Test",
 			"configurePreset": "Linux-x64-Debug",
@@ -196,18 +184,6 @@
 			"execution": {
 				"stopOnFailure": true,
 				"noTestsAction": "error"
-			}
-		},
-		{
-			"name": "Linux-x64-Debug-No-Tests",
-			"displayName": "Test",
-			"configurePreset": "Linux-x64-Debug-No-Tests",
-			"output": {
-				"outputOnFailure": false
-			},
-			"execution": {
-				"stopOnFailure": true,
-				"noTestsAction": "ignore"
 			}
 		}
 	]
