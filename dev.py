@@ -57,21 +57,14 @@ def test(preset):
         folder = './out/build/default'
         os.chdir(folder)
         result = subprocess.run(['ctest', '-N'], capture_output=True, text=True)
-        test_count = int(result.stdout.split('Total Tests: ')[1].split('\n')[0])
     else:
         result = subprocess.run(['ctest', '--preset', preset, '-N'], capture_output=True, text=True)
-        test_count = int(result.stdout.split('Total Tests: ')[1].split('\n')[0])
         
-    if test_count == 0:
+    if "No such test preset" in result.stderr:
         print("No tests available. Continuing...")
         return
     else:
         result = subprocess.run(['ctest', '--preset', preset], capture_output=True, text=True)
-
-    if "No such test preset" in result.stderr:
-        print(result.stderr)
-        sys.exit(result.returncode)
-    else:
         print(result.stdout)
 
     if result.returncode != 0:
