@@ -3,6 +3,8 @@ import json
 import os
 import subprocess
 import sys
+import select    
+import time
 
 def check_preset(preset):
     with open('CMakePresets.json') as f:
@@ -26,18 +28,59 @@ def build(preset):
     if result.returncode != 0:	
         sys.exit(result.returncode)
 
+def read_input():
+    timeout = 30  # seconds
+    print("Tests failed. Would you like to continue anyway? [y/N]")
+    if os.name == 'nt':  # Windows
+        import msvcrt
+        start_time = time.time()
+        while True:
+            if msvcrt.kbhit():
+                user_input = sys.stdin.readline().strip()
+                return user_input
+            elif time.time() - start_time > timeout:
+                print("Time out. Exiting due to test failure.")
+                sys.exit(1)
+            time.sleep(0.1)
+    else:  # Unix-based
+        i, o, e = select.select( [sys.stdin], [], [], timeout )
+        if (i):
+            user_input = sys.stdin.readline().strip()
+            return user_input
+        else:
+            print("Time out. Exiting due to test failure.")
+            sys.exit(1)
+
+
 def test(preset):
-    if preset == None:
+    if preset is None:
         folder = './out/build/default'
+        os.chdir(folder)
+        result = subprocess.run(['ctest', '-N'], capture_output=True, text=True)
+        test_count = int(result.stdout.split('Total Tests: ')[1].split('\n')[0])
     else:
-        folder = f'./out/build/{preset}'
-    test_count = int(subprocess.check_output(['ctest', '-N', '-C', folder]).decode().split('Total Tests: ')[1].split('\n')[0])
+        result = subprocess.run(['ctest', '--preset', preset, '-N'], capture_output=True, text=True)
+        test_count = int(result.stdout.split('Total Tests: ')[1].split('\n')[0])
+        
     if test_count == 0:
         print("No tests available. Continuing...")
+        return
     else:
-        result = subprocess.run(['ctest', '-C', folder])
-    if result.returncode != 0:
+        result = subprocess.run(['ctest', '--preset', preset], capture_output=True, text=True)
+
+    if "No such test preset" in result.stderr:
+        print(result.stderr)
         sys.exit(result.returncode)
+    else:
+        print(result.stdout)
+
+    if result.returncode != 0:
+        user_input = read_input()
+        if user_input.lower() == 'y':
+            print("Continuing despite test failure.")
+        else:
+            print("Exiting due to test failure.")
+            sys.exit(result.returncode)
 
 def run(preset):
     if preset == None:

@@ -47,19 +47,28 @@ def update_version(version, force=False):
         with open(file_path, 'w') as file:
             file.write(new_content)
 
-def get_user_input(prompt, timeout=60):
+def get_user_input(prompt, timeout=30):
     start_time = time.time()
     print(prompt, end='', flush=True)
 
-    user_input = ''
-    while time.time() - start_time < timeout:
-        if not user_input:
+    if os.name == 'nt':  # Windows
+        import msvcrt
+        start_time = time.time()
+        while True:
+            if msvcrt.kbhit():
+                user_input = sys.stdin.readline().strip()
+                return user_input
+            elif time.time() - start_time > timeout:
+                return ''
+            time.sleep(0.1)
+    else:  # Unix-based
+        i, o, e = select.select( [sys.stdin], [], [], timeout )
+        if (i):
             user_input = sys.stdin.readline().strip()
-            if user_input:
-                break
-        time.sleep(0.1)
-
-    return user_input
+            return user_input
+        else:
+            return ''
+            
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Update version script')
