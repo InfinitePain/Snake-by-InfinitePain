@@ -7,8 +7,8 @@ url="https://github.com/InfinitePain/Snake-by-InfinitePain"
 license=('Apache')
 depends=('glibc' 'ncurses')
 makedepends=('cmake' 'ninja')
-source=("REPLACE_WITH_ACTUAL_URL")
-sha256sums=('REPLACE_WITH_ACTUAL_SHA256SUM')
+source=("https://github.com/InfinitePain/Snake-by-InfinitePain/archive/refs/tags/v1.2.3.tar.gz")
+sha256sums=('1825af157c0989d9f64972de0f7ed5b886ddd4f025fe4eca5c479d7f1adcd0da')
 
 build() {
     tar -xzf "v${pkgver}.tar.gz"
