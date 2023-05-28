@@ -24,7 +24,7 @@
                   InstallCondition="NOT VCRedistInstalled" />
 
       <MsiPackage Id="Snake_by_InfinitePain"
-                  SourceFile="../../out/build/W-x64-r-GCC-N/$(var.InstallerName)" />
+                  SourceFile="../../out/build/Windows-x64-Release/$(var.InstallerName)" />
     </Chain>
   </Bundle>
 </Wix>
