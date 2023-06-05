@@ -116,7 +116,7 @@ void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
 	if (curr == NULL) {
 		return;
 	}
-	
+
 	Element* currSnake = pSnake1->pos_snake->head;
 	while (currSnake != NULL) {
 		remove_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
@@ -129,15 +129,18 @@ void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2) {
 			currSnake = currSnake->next;
 		}
 	}
-	
+
 	while (curr != NULL) {
+		if (appArgs.pAvailablePositions->count <= 0) {
+			break;
+		}
 		get_random_position(appArgs.pAvailablePositions, &x, &y);
 		remove_position(appArgs.pAvailablePositions, x, y);
 		curr->pos.posx = x;
 		curr->pos.posy = y;
 		curr = food_adresser(pFood);
 	}
-	
+
 	currSnake = pSnake1->pos_snake->head;
 	while (currSnake != NULL) {
 		add_position(appArgs.pAvailablePositions, currSnake->pos.posx, currSnake->pos.posy);
@@ -164,14 +167,29 @@ void reset_food(List* pFood) {
 	}
 }
 
+void reset_available_positions(AvailablePositions* ap, int width, int height) {
+    if (ap == NULL || GAME_STATE == CRITICAL_ERROR) {
+        return;
+    }
+    ap->count = 0;
+
+    for (int x = 1; x < width - 1; x++) {
+        for (int y = 1; y < height - 1; y++) {
+            Position pos = { x, y };
+            ap->positions[ap->count++] = pos;
+        }
+    }
+}
+
+
 void resize_foods(int food_amount_single_player, int food_amount_multiplayer) {
 	if (GAME_STATE == CRITICAL_ERROR) {
 		return;
 	}
 	int max_food = food_amount_multiplayer;
-    if (food_amount_single_player > max_food) {
-        max_food = food_amount_single_player;
-    }
+	if (food_amount_single_player > max_food) {
+		max_food = food_amount_single_player;
+	}
 
 	while (max_food != appArgs.pFood_Main->size) {
 		if (max_food > appArgs.pFood_Main->size) {
@@ -180,15 +198,15 @@ void resize_foods(int food_amount_single_player, int food_amount_multiplayer) {
 		}
 		else {
 			delete_last_element(appArgs.pFood_Main);
-        }
+		}
 	}
-	
+
 	make_list_from(appArgs.pFood_Main, appArgs.pFood_Multiplayer, food_amount_multiplayer);
-    make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, food_amount_single_player);
+	make_list_from(appArgs.pFood_Main, appArgs.pFood_Single_Player, food_amount_single_player);
 }
 
 void init_foods(int food_amount_single_player, int food_amount_multiplayer) {
-	if(GAME_STATE == CRITICAL_ERROR) {
+	if (GAME_STATE == CRITICAL_ERROR) {
 		return;
 	}
 	appArgs.pFood_Main = create_list();
@@ -205,7 +223,7 @@ void init_foods(int food_amount_single_player, int food_amount_multiplayer) {
 	if (food_amount_single_player > max_food) {
 		max_food = food_amount_single_player;
 	}
-	
+
 	Element* curr;
 	while (max_food != appArgs.pFood_Main->size) {
 		curr = create_element(-1, -1);

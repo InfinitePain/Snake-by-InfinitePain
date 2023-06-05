@@ -28,6 +28,7 @@ void get_random_position(AvailablePositions* ap, int* x, int* y);
 Element* food_adresser(List* pList);
 void random_food_generator(List* pFood, Snake* pSnake1, Snake* pSnake2);
 void reset_food(List* pFood);
+void reset_available_positions(AvailablePositions* ap, int width, int height);
 void resize_foods(int food_amount_single_player, int food_amount_multiplayer);
 void init_foods(int food_amount_single_player, int food_amount_multiplayer);
 void* food_thread(void* arg);
