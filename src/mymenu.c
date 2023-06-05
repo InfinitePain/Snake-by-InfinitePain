@@ -70,6 +70,7 @@ void start_game(GameMode mode, bool is_new_game) {
 		pthread_cond_wait(&GameThreads.pause_cond[thr_menu], &GameThreads.thr_mutex[thr_menu]);
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thr_menu]);
 		reset_food(appArgs.pFood_Main);
+		reset_available_positions(appArgs.pAvailablePositions, getmaxx(appWindows[GAME_WIN]), getmaxy(appWindows[GAME_WIN]));
 		set_snake_position(appArgs.pSnake1, 3, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 		set_snake_position(appArgs.pSnake2, getmaxx(appWindows[GAME_WIN]) - 4, (getmaxy(appWindows[GAME_WIN]) / 2) - 1);
 	}
