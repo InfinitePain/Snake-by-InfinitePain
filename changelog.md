@@ -2,6 +2,22 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
+## [1.3.0] - 2023-06-05
+
+### Added
+
+- Check in Windows installer to verify if necessary redistributables are already installed.
+
+### Changed
+
+- Screen size changes now saved to configuration file but do not take effect until game restart.
+
+### Fixed
+
+- Crash issue when there was insufficient space in the game to create food.
+- Bug where available positions were not reset when there was not enough space for the desired amount of food.
+- Bug where available positions were lost when the game was restarted.
+
 ## [1.2.3] - 2023-05-26
 
 ### Fixed
