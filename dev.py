@@ -119,11 +119,11 @@ def installer():
 
     os.chdir('../../../installers/wix')
 
-    result = subprocess.run(['candle', '-ext', 'WixBalExtension', 'bundle.wxs'])
+    result = subprocess.run(['candle', '-ext', 'WixBalExtension', '-ext', 'WixUtilExtension', 'bundle.wxs'])
     if result.returncode != 0:
         sys.exit(result.returncode)
 
-    result = subprocess.run(['light', '-ext', 'WixBalExtension', 'Bundle.wixobj', '-o', 'Snake-by-InfinitePain-Windows_Installer.exe'])
+    result = subprocess.run(['light', '-ext', 'WixBalExtension', '-ext', 'WixUtilExtension', 'Bundle.wixobj', '-o', 'Snake-by-InfinitePain-Windows_Installer.exe'])
     if result.returncode != 0:
         sys.exit(result.returncode)
 
