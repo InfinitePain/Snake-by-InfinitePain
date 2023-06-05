@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
-project(Snake-by-InfinitePain VERSION 1.2.3)
+project(Snake-by-InfinitePain VERSION 1.3.0)
 
 # Set the output directory for the binary file
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/)
@@ -126,12 +126,13 @@ endfunction()
 set_install_property("bin/$<TARGET_FILE_NAME:Snake-by-InfinitePain>" CPACK_START_MENU_SHORTCUTS "Snake-by-InfinitePain")
 set_install_property("bin/$<TARGET_FILE_NAME:Snake-by-InfinitePain>" CPACK_DESKTOP_SHORTCUTS "Snake-by-InfinitePain")
 set(CPACK_WIX_UPGRADE_GUID "284f9cd7-292a-4eff-9790-9f672476b2ba")
+set(CPACK_WIX_PRODUCT_GUID "a56a32a9-83a3-4fa6-98e1-0b3c0963e737")
 set(CPACK_WIX_PROPERTY_ALLUSERS "1")
 install(DIRECTORY ${EXTERNAL_LIB_DIR}/ncurses DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
-	install(DIRECTORY ${EXTERNAL_LIB_DIR}/menu DESTINATION external
+install(DIRECTORY ${EXTERNAL_LIB_DIR}/menu DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
-	install(DIRECTORY ${EXTERNAL_LIB_DIR}/pthread DESTINATION external
+install(DIRECTORY ${EXTERNAL_LIB_DIR}/pthread DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
 endif()
 
