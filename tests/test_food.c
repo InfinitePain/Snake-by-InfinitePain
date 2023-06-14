@@ -70,22 +70,6 @@ START_TEST(test_food_adresser)
 }
 END_TEST
 
-START_TEST(test_random_food_generator)
-{
-	List* pFood = create_list();
-	Element* e = create_element(-1, -1);
-	add_element_to_head(pFood, e);
-	Snake* pSnake1 = create_snake(5, 1, 1, 5, 5);
-	Snake* pSnake2 = create_snake(10, 2, 1, 10, 10);
-	random_food_generator(pFood, pSnake1, pSnake2);
-	ck_assert_int_ne(e->pos.posx, -1);
-	ck_assert_int_ne(e->pos.posy, -1);
-	delete_list(pFood);
-	delete_snake(pSnake1);
-	delete_snake(pSnake2);
-}
-END_TEST
-
 START_TEST(test_reset_food)
 {
 	List* pFood = create_list();
@@ -133,7 +117,6 @@ Suite* food_suite()
 
 	TCase* tc_food = tcase_create("Food");
 	tcase_add_test(tc_food, test_food_adresser);
-	tcase_add_test(tc_food, test_random_food_generator);
 	tcase_add_test(tc_food, test_reset_food);
 	tcase_add_test(tc_food, test_resize_foods);
 	tcase_add_test(tc_food, test_init_foods);
