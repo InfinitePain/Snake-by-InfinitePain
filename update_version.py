@@ -27,6 +27,7 @@ def update_version(version, force=False):
         ('Installers/wix/Bundle.wxs', r'(<\?define ProductVersion = ")([^"]*)("\s*\?>)'),
         ('src/snakebyip.c', r'(\s*Version\s*:\s*)([^*\s]*)(\s*)'),
         ('CMakeLists.txt', r'(project\(Snake-by-InfinitePain VERSION )([^\)]*)(\))'),
+        ('installers/arch_linux/PKGBUILD', r'(pkgver=)([^*\s]*)(\s*)'),
     ]
 
     for file_path, pattern in file_paths:
