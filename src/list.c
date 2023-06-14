@@ -25,6 +25,7 @@ List* create_list() {
 		return NULL;
 	}
 	pList->head = NULL;
+	pList->tail = NULL;
 	pList->size = 0;
 	return pList;
 }
@@ -36,6 +37,7 @@ void add_element_to_head(List* pList, Element* pElement) {
 	if (pList->head == NULL) {
 		// The list is empty, so set the head and tail to the new element
 		pList->head = pElement;
+		pList->tail = pElement;
 		pElement->next = NULL;
 		pElement->index = 0;
 	}
@@ -75,11 +77,13 @@ void delete_last_element(List* pList) {
 	if (pList->head->next == NULL) {
 		free(pList->head);
 		pList->head = NULL;
+		pList->tail = NULL;
 	}
 	else {
 		Element* temp = get_element_at_index(pList, pList->size - 2);
 		free(temp->next);
 		temp->next = NULL;
+		pList->tail = temp;
 	}
 	--pList->size;
 }

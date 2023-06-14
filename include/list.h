@@ -18,6 +18,7 @@
 
 typedef struct List {
 	Element* head;
+	Element* tail;
 	int size;
 } List;
 
