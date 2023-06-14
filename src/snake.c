@@ -150,6 +150,32 @@ bool is_key_reverse(int key, int dir) {
 	}
 	return false;
 }
+void update_snake_position(Snake* pSnake, int background_color, WINDOW* game_window, int key) {
+	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+    // Get the head and tail of the snake
+	Element* head = pSnake->pos_snake->head;
+    Element* tail = pSnake->pos_snake->tail;
+
+	// Clear the tail
+	printer_element(tail, background_color, 0, game_window);
+
+	// Print the tail
+	if (pSnake->grow > 0)
+	printer_element(tail, background_color, 0, game_window);
+
+    // Move the snake
+	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+    move_snake(appArgs.pConfig, key, pSnake);
+	pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+
+    // Get the new head
+    head = pSnake->pos_snake->head;
+
+    // Print the new head
+    printer_element(head, pSnake->color, 0, game_window);
+	pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+}
+
 
 void* snake_thread(void* args) {
 	Snake* pSnake = (Snake*)args;
@@ -173,6 +199,9 @@ void* snake_thread(void* args) {
 			if (buffer_peek(&pSnake->dir_buffer) != -1) {
 				key = buffer_pop(&pSnake->dir_buffer);
 			}
+			pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
+			list_printer(pSnake->pos_snake, pSnake->color, 0, appWindows[GAME_WIN]);
+			pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
 		}
 		pthread_mutex_unlock(&GameThreads.thr_mutex[thrnum]);
 		if (GAME_STATE == QUIT) {
@@ -186,13 +215,9 @@ void* snake_thread(void* args) {
 				key = next_key;
 			}
 		}
-		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-		list_printer(pSnake->pos_snake, appArgs.pConfig->configs[BACKGROUND_COLOR], 0, appWindows[GAME_WIN]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
-		move_snake(appArgs.pConfig, key, pSnake);
-		pthread_mutex_lock(&GameThreads.thr_mutex[mutex_win_game]);
-		list_printer(pSnake->pos_snake, pSnake->color, 0, appWindows[GAME_WIN]);
-		pthread_mutex_unlock(&GameThreads.thr_mutex[mutex_win_game]);
+		
+		update_snake_position(pSnake, appArgs.pConfig->configs[BACKGROUND_COLOR], appWindows[GAME_WIN], key);
+		
 		loop_end_time = get_current_time_in_seconds();
 		time_spent = loop_end_time - loop_start_time;
 		time_to_sleep = desired_sleep_time - time_spent;
