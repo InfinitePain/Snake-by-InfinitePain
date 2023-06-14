@@ -126,7 +126,7 @@ endfunction()
 set_install_property("bin/$<TARGET_FILE_NAME:Snake-by-InfinitePain>" CPACK_START_MENU_SHORTCUTS "Snake-by-InfinitePain")
 set_install_property("bin/$<TARGET_FILE_NAME:Snake-by-InfinitePain>" CPACK_DESKTOP_SHORTCUTS "Snake-by-InfinitePain")
 set(CPACK_WIX_UPGRADE_GUID "284f9cd7-292a-4eff-9790-9f672476b2ba")
-set(CPACK_WIX_PRODUCT_GUID "a56a32a9-83a3-4fa6-98e1-0b3c0963e737")
+set(CPACK_WIX_PRODUCT_GUID "e3e2061a-4163-4f0c-b61e-58dc75e5356f")
 set(CPACK_WIX_PROPERTY_ALLUSERS "1")
 install(DIRECTORY ${EXTERNAL_LIB_DIR}/ncurses DESTINATION external
 	FILES_MATCHING PATTERN "*.a" PATTERN "*.txt")
