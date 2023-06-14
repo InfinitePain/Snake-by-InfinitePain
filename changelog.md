@@ -2,6 +2,20 @@
 
 All notable changes to "Snake by InfinitePain" will be documented in this file.
 
+## [1.4.0] - 2023-06-15
+
+### Changed
+
+- Introduced `update_snake_position` function in `snake.c` for efficient snake movement.
+- Added `tail` pointer to the `List` structure in `list.h` to support the new snake movement logic.
+- Updated `printer_element` function in `element.h` to include a `WINDOW* window` parameter.
+
+## [1.3.1] - 2023-06-15
+
+### Fixed
+
+- Fixed a bug in the `collision_thread` function in `collision.c` where the game timer was stopping randomly or not being reset correctly.
+
 ## [1.3.0] - 2023-06-05
 
 ### Added
