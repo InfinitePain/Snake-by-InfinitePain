@@ -11,6 +11,8 @@
 #define ELEMENT_H_
 
 #include "position.h"
+#define NCURSES_STATIC
+#include <ncurses.h>
 
 typedef struct Element {
 	int index;
@@ -19,6 +21,6 @@ typedef struct Element {
 } Element;
 
 Element* create_element(const int posx, const int posy);
-void printer_element(const Element* pElement, const int color, const int time);
+void printer_element(const Element* pElement, const int color, const int time, WINDOW* window);
 
 #endif /* ELEMENT_H_ */

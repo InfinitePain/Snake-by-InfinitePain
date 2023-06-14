@@ -33,13 +33,13 @@ Element* create_element(const int posx, const int posy) {
 	return pElement;
 }
 
-void printer_element(const Element* pElement, const int color, const int time) {
-	if (GAME_STATE == CRITICAL_ERROR) {
+void printer_element(const Element* pElement, const int color, const int time, WINDOW* window) {
+	if (GAME_STATE == CRITICAL_ERROR || pElement == NULL || window == NULL) {
 		return;
 	}
-	attron(COLOR_PAIR(color));
+	wattron(window, COLOR_PAIR(color));
 	usleep(time);
-	mvaddch(pElement->pos.posy, pElement->pos.posx, ' ');
-	refresh();
-	attroff(COLOR_PAIR(color));
+	mvwaddch(window, pElement->pos.posy, pElement->pos.posx, ' ');
+	wrefresh(window);
+	wattroff(window, COLOR_PAIR(color));
 }
