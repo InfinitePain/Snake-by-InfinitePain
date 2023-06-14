@@ -228,7 +228,9 @@ void* collision_thread(void* arg) {
 
 		if (game_timer_needs_reset) {
 			reset_timer(&start_time, &pause_total_time);
-			last_time_update = start_time;
+			last_time_update = 0;
+			time_changed = true;
+			print_time((double)0);
 			game_timer_needs_reset = false;
 		}
 		pthread_mutex_lock(&GameThreads.thr_mutex[thr_food]);
