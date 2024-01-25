@@ -42,7 +42,9 @@ Please note that you need to have `base-devel` and `git` installed on your syste
 The game stores its configuration settings in a file that is created in the following locations:
 
 Windows: %APPDATA%\Snake-by-InfinitePain\configurations.txt
+
 Linux: ~/.config/Snake-by-InfinitePain/configurations.txt
+
 macOS: ~/Library/Application Support/Snake-by-InfinitePain/configurations.txt
 
 ## License
